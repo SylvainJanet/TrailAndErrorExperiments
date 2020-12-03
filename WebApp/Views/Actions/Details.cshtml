@@ -1,0 +1,38 @@
+﻿@model WebApp.Models.Action
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Actions</h4>
+    <hr />
+    <dl class="dl-horizontal">
+
+        @*Not in a relationship*@
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        @*ManyToMany*@
+        <dt>
+            @Html.DisplayNameFor(model => model.People)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.People, new SelectList(Model.People.Select(o => o.Name), null, Model.People.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+        </dd>
+
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
+

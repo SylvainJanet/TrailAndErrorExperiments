@@ -1,0 +1,64 @@
+﻿@model WebApp.Models.Person
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Person</h4>
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Brain.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Brain.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Fingers)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.Fingers, new SelectList(Model.Fingers.Select(o => o.Name), null, Model.Fingers.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Ideas)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.Ideas, new SelectList(Model.Ideas.Select(o => o.Name), null, Model.Ideas.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Actions)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.Actions, new SelectList(Model.Actions.Select(o => o.Name), null, Model.Actions.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Vision)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Vision.Name)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
