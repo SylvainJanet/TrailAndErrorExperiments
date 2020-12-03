@@ -75,16 +75,17 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                List<Person> owners = PeopleComfy != null ? _PersonService.FindManyByIdExcludes(PeopleComfy) : null;
-                List<Person> owners2 = PeopleSecret != null ? _PersonService.FindManyByIdExcludes(PeopleSecret) : null;
-                if (owners == null)
-                {
-                    _ThoughtService.Save(element, new PropToNull("PeopleAtEase"), owners2);
-                }
+                object owners;
+                if (PeopleComfy == null)
+                    owners = new PropToNull("PeopleAtEase");
                 else
-                {
-                    _ThoughtService.Save(element, owners, owners2);
-                }
+                    owners = _PersonService.FindManyByIdExcludes(PeopleComfy);
+                object owners2;
+                if (PeopleSecret == null)
+                    owners2 = new PropToNull("PeopleTimid");
+                else
+                    owners2 = _PersonService.FindManyByIdExcludes(PeopleSecret);
+                _ThoughtService.Save(element, owners, owners2);
                 return RedirectToAction("Index");
             }
             ViewBag.PeopleComfy = new MultiSelectList(_PersonService.GetAllExcludes(), "Id", "Name", null);

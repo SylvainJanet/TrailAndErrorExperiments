@@ -22,14 +22,14 @@
             @Html.DisplayNameFor(model => model.PeopleAtEase)
         </dt>
         <dd>
-            @Html.DropDownListFor(model => model.PeopleAtEase, new SelectList(Model.PeopleAtEase.Select(o => o.Name), null, Model.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+            @Html.DropDownListFor(model => model.PeopleAtEase, new SelectList(Model.PeopleAtEase.Select(o => o.Name), null, Model.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
         </dd>
 
         <dt>
             @Html.DisplayNameFor(model => model.PeopleTimid)
         </dt>
         <dd>
-            @Html.DropDownListFor(model => model.PeopleTimid, new SelectList(Model.PeopleTimid.Select(o => o.Name), null, Model.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+            @Html.DropDownListFor(model => model.PeopleTimid, new SelectList(Model.PeopleTimid.Select(o => o.Name), null, Model.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
         </dd>
 
     </dl>
