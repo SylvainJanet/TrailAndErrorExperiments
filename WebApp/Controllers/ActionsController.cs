@@ -16,10 +16,10 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class ActionsController : Controller
     {
-        private MyDbContext db = new MyDbContext();
+        private readonly MyDbContext db = new MyDbContext();
         #region Services
-        private IActionService _ActionService;
-        private IPersonService _PersonService;
+        private readonly IActionService _ActionService;
+        private readonly IPersonService _PersonService;
         #endregion
 
         public ActionsController()

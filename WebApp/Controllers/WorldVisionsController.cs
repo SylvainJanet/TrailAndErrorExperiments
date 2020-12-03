@@ -16,10 +16,10 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class WorldVisionsController : Controller
     {
-        private MyDbContext db = new MyDbContext();
+        private readonly MyDbContext db = new MyDbContext();
         #region Services
-        private IWorldVisionService _WorldVisionService;
-        private IPersonService _PersonService;
+        private readonly IWorldVisionService _WorldVisionService;
+        private readonly IPersonService _PersonService;
         #endregion
 
         public WorldVisionsController()

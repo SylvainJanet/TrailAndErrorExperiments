@@ -16,9 +16,9 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class IdeasController : Controller
     {
-        private MyDbContext db = new MyDbContext();
-        private IIdeaService _IdeasService;
-        private IPersonService _PersonService;
+        private readonly MyDbContext db = new MyDbContext();
+        private readonly IIdeaService _IdeasService;
+        private readonly IPersonService _PersonService;
 
         public IdeasController()
         {
