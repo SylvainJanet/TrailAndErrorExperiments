@@ -40,9 +40,27 @@ namespace WebApp.EntityConfigurations
                         pa.MapRightKey("ActionId");
                         pa.ToTable("PersonAction");
                     });
-            //Set will cascade on delete to false in migration
 
             HasOptional<WorldVision>(p => p.Vision);
+
+            HasMany<Thought>(p => p.ComfortableThoughts)
+                .WithMany(t => t.PeopleAtEase)
+                .Map(pt =>
+                {
+                    pt.MapLeftKey("PersonId");
+                    pt.MapRightKey("ThoughtId");
+                    pt.ToTable("PersonThoughtComfy");
+                });
+
+            HasMany<Thought>(p => p.SecretThoughts)
+                .WithMany(t => t.PeopleTimid)
+                .Map(pt =>
+                {
+                    pt.MapLeftKey("PersonId");
+                    pt.MapRightKey("ThoughtId");
+                    pt.ToTable("PersonThoughtTimid");
+                });
+            //Set will cascade on delete to false in migration
         }
     }
 }

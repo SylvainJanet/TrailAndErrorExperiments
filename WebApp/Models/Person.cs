@@ -22,6 +22,10 @@ namespace WebApp.Models
 
         public WorldVision Vision { get; set; }
 
+        public IList<Thought> ComfortableThoughts { get; set; }
+
+        public IList<Thought> SecretThoughts { get; set; }
+
         public Person(string name) : this()
         {
             Name = name;
@@ -41,6 +45,8 @@ namespace WebApp.Models
             Fingers = new List<Finger>();
             Ideas = new List<Idea>();
             Actions = new List<Action>();
+            ComfortableThoughts = new List<Thought>();
+            SecretThoughts = new List<Thought>();
         }
     }
 }

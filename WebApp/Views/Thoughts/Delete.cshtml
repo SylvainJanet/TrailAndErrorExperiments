@@ -1,0 +1,46 @@
+﻿@model WebApp.Models.Thought
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Thought</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PeopleAtEase)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.PeopleAtEase, new SelectList(Model.PeopleAtEase.Select(o => o.Name), null, Model.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PeopleTimid)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.PeopleTimid, new SelectList(Model.PeopleTimid.Select(o => o.Name), null, Model.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    }
+</div>

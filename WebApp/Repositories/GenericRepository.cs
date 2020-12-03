@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
+using WebApp.Tools.Generic;
 
 namespace WebApp.Repositories
 {
@@ -29,7 +30,7 @@ namespace WebApp.Repositories
 
         /// <summary>
         /// An object <c>obj</c> of class <typeparamref name="T"/> has properties <c>obj.PropName</c> of
-        /// class <c>ClassType</c> which is in a <see cref="DbSet"/> of the generic repository 
+        /// class <see cref="IList"/>&lt;<c>ClassType</c>&gt; where <c>ClassType</c> is in a <see cref="DbSet"/> of the generic repository 
         /// <see cref="DataContext"/>. 
         /// <br/>
         /// This is every { PropName : ClassType }
@@ -38,7 +39,7 @@ namespace WebApp.Repositories
 
         /// <summary>
         /// An object <c>obj</c> of class <typeparamref name="T"/> has properties <c>obj.PropName</c> of
-        /// class <see cref="IList"/>&lt;<c>ClassType</c>&gt; where <c>ClassType</c> is in a <see cref="DbSet"/> of the generic repository 
+        /// class <c>ClassType</c> which is in a <see cref="DbSet"/> of the generic repository 
         /// <see cref="DataContext"/>. 
         /// <br/>
         /// This is every { PropName : ClassType }
@@ -619,39 +620,61 @@ namespace WebApp.Repositories
             {
                 bool isFound = false;
                 int i = 0;
-                foreach (Type typ in lTlisttype)
+                if (obj is PropToNull)
                 {
-                    try
+                    isFound = true;
+                    Type typeofprop = typeof(T).GetProperty(((PropToNull)obj).PropertyName).PropertyType;
+                    if (GenericTools.TryListOfWhat(typeofprop, out Type innertype))
                     {
-                        var test = Convert.ChangeType(obj, typ);
-                        isFound = true;
-                        res[resindex] = CreateListCustomParamFromKey(lkeysforlisttypes[i], obj);
-                        resindex++;
-                        lkeysforlisttypes.RemoveAt(i);
-                        ltypesforlisttpes.RemoveAt(i);
-                        lTlisttype.RemoveAt(i);
-                        break;
+                        res[resindex] = CreateDefaultListCustomParamFromKey(((PropToNull)obj).PropertyName);
+                        lkeysforlisttypes.Remove(((PropToNull)obj).PropertyName);
+                        ltypesforlisttpes.Remove(innertype);
+                        lTlisttype.Remove(typeof(List<>).MakeGenericType(innertype));
                     }
-                    catch { }
-                    i++;
+                    else
+                    {
+                        res[resindex] = CreateDefaultCustomParamFromKey(((PropToNull)obj).PropertyName);
+                        lkeysfortypes.Remove(((PropToNull)obj).PropertyName);
+                        lTtypes.Remove(typeofprop);
+                    }
+                    resindex++;
                 }
-                i = 0;
-                if (!isFound)
-                {
-                    foreach (Type typ in lTtypes)
+                else
+                { 
+                    foreach (Type typ in lTlisttype)
                     {
                         try
                         {
                             var test = Convert.ChangeType(obj, typ);
                             isFound = true;
-                            res[resindex] = CreateCustomParamFromKey(lkeysfortypes[i], obj);
+                            res[resindex] = CreateListCustomParamFromKey(lkeysforlisttypes[i], obj);
                             resindex++;
-                            lkeysfortypes.RemoveAt(i);
-                            lTtypes.RemoveAt(i);
+                            lkeysforlisttypes.RemoveAt(i);
+                            ltypesforlisttpes.RemoveAt(i);
+                            lTlisttype.RemoveAt(i);
                             break;
                         }
                         catch { }
                         i++;
+                    }
+                    i = 0;
+                    if (!isFound)
+                    {
+                        foreach (Type typ in lTtypes)
+                        {
+                            try
+                            {
+                                var test = Convert.ChangeType(obj, typ);
+                                isFound = true;
+                                res[resindex] = CreateCustomParamFromKey(lkeysfortypes[i], obj);
+                                resindex++;
+                                lkeysfortypes.RemoveAt(i);
+                                lTtypes.RemoveAt(i);
+                                break;
+                            }
+                            catch { }
+                            i++;
+                        }
                     }
                 }
                 if (!isFound)
@@ -848,7 +871,7 @@ namespace WebApp.Repositories
                 if (newValue != null && !propToChange.PropertyType.IsAssignableFrom(newValue.GetType()))
                     throw new InvalidArgumentsForClassException(typeof(T));
 
-                typeof(T).GetProperty(propertyName).SetValue(tToChange, Convert.ChangeType(newValue,propToChange.PropertyType));
+                typeof(T).GetProperty(propertyName).SetValue(tToChange, newValue);
 
                 newContext.Entry(tToChange).State = EntityState.Modified;
 

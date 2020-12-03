@@ -21,12 +21,10 @@ namespace WebApp.Repositories
         public virtual DbSet<Person> People { get; set; }
         public virtual DbSet<Models.Action> Actions { get; set; }
         public virtual DbSet<WorldVision> WorldVisions { get; set; }
+        public virtual DbSet<Thought> Thoughts { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Configurations.Add(new BrainConfiguration());
-            modelBuilder.Configurations.Add(new FingerConfiguration());
-            modelBuilder.Configurations.Add(new IdeaConfiguration());
             modelBuilder.Configurations.Add(new PersonConfiguration());
             base.OnModelCreating(modelBuilder);
         }

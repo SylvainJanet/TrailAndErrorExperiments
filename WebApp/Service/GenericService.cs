@@ -59,14 +59,14 @@ namespace WebApp.Service
         {
             if (!id.HasValue)
                 throw new IdNullExceptionForClass(typeof(T));
-            return _repository.FindByIdIncludes(id.Value);
+            return _repository.FindByIdExcludes(id.Value);
         }
 
         public T FindByIdExcludesTracked(int? id)
         {
             if (!id.HasValue)
                 throw new IdNullExceptionForClass(typeof(T));
-            return _repository.FindByIdIncludesTracked(id.Value);
+            return _repository.FindByIdExcludesTracked(id.Value);
         }
 
         public T FindByIdIncludes(int? id)

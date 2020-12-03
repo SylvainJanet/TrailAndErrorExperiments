@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using WebApp.Models;
 using WebApp.Repositories;
 using WebApp.Service;
+using WebApp.Tools.Generic;
 
 namespace WebApp.Controllers
 {
@@ -16,13 +17,14 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class PeopleController : Controller
     {
-        private MyDbContext db = new MyDbContext();
-        private IPersonService _PersonService;
-        private IIdeaService _IdeaService;
-        private IFingerService _FingerService;
-        private IBrainService _BrainService;
-        private IActionService _ActionService;
-        private IWorldVisionService _WorldVisionService;
+        private readonly MyDbContext db = new MyDbContext();
+        private readonly IPersonService _PersonService;
+        private readonly IIdeaService _IdeaService;
+        private readonly IFingerService _FingerService;
+        private readonly IBrainService _BrainService;
+        private readonly IActionService _ActionService;
+        private readonly IWorldVisionService _WorldVisionService;
+        private readonly IThoughtService _ThoughtService;
 
         public PeopleController()
         {
@@ -32,6 +34,7 @@ namespace WebApp.Controllers
             _BrainService = new BrainService(new BrainRepository(db));
             _ActionService = new ActionService(new ActionRepository(db));
             _WorldVisionService = new WorldVisionService(new WorldVisionRepository(db));
+            _ThoughtService = new ThoughtService(new ThoughtRepository(db));
         }
         
         [HttpGet] //localhost:xxx/users/1/15
@@ -69,6 +72,8 @@ namespace WebApp.Controllers
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.Actions = new MultiSelectList(_ActionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             return View();
         }
 
@@ -78,19 +83,30 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId)
+        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret)
         {
             if (ModelState.IsValid)
             {
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
-                _PersonService.Save(person, ideas, actions, worldVision);
+                List<Thought> owners = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
+                List<Thought> owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                if (owners == null)
+                {
+                    _PersonService.Save(person, ideas, actions, worldVision, new PropToNull("ComfortableThoughts"), owners2);
+                }
+                else
+                {
+                    _PersonService.Save(person, ideas, actions, worldVision, owners, owners2);
+                }
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.Actions = new MultiSelectList(_ActionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             return View(person);
         }
 
@@ -110,6 +126,8 @@ namespace WebApp.Controllers
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.Actions = new MultiSelectList(_ActionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             TempData["Brain"] = person.Brain;
             TempData["Fingers"] = person.Fingers;
             TempData.Keep();
@@ -122,7 +140,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId )
+        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret)
         {
             if (ModelState.IsValid)
             {
@@ -139,12 +157,23 @@ namespace WebApp.Controllers
                 {
                     _ActionService.Delete(el);
                 }
-                _PersonService.Update(person, ideas, brain, fingers, actions, worldVision);
+                List<Thought> owners = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
+                List<Thought> owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                if (owners == null)
+                {
+                    _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, new PropToNull("ComfortableThoughts"), owners2);
+                }
+                else
+                {
+                    _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2);
+                }
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.Actions = new MultiSelectList(_ActionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             TempData.Keep();
             return View(person);
         }
@@ -178,6 +207,14 @@ namespace WebApp.Controllers
             foreach (Models.Action el in _ActionService.GetAllExcludes(1, int.MaxValue, null, t => t.People.Count() == 1 && t.People.Where(p => p.Id == id).Count()==1))
             {
                 _ActionService.Delete(el);
+            }
+            foreach (Thought thought in _ThoughtService.GetAllExcludes(1, int.MaxValue, null, t => t.PeopleAtEase.Where(p=>p.Id == id).Count()>=1))
+            {
+                _ThoughtService.UpdateOne(thought, "PeopleAtEase", thought.PeopleAtEase.Where(p => p.Id != id).ToList());
+            }
+            foreach (Thought thought in _ThoughtService.GetAllExcludes(1, int.MaxValue, null, t => t.PeopleTimid.Where(p => p.Id == id).Count() >= 1))
+            {
+                _ThoughtService.UpdateOne(thought, "PeopleTimid", thought.PeopleTimid.Where(p => p.Id != id).ToList());
             }
             _PersonService.Delete(id);
             return RedirectToAction("Index");

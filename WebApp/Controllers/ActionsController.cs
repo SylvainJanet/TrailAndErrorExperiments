@@ -104,12 +104,12 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Models.Action element, int?[] Owners)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Models.Action element, int?[] People)
         {
             #region ClassManyToMany
-            if (ModelState.IsValid && Owners != null)
+            if (ModelState.IsValid && People != null)
             {
-                List<Person> owners = _PersonService.FindManyByIdExcludes(Owners);
+                List<Person> owners = _PersonService.FindManyByIdExcludes(People);
                 _ActionService.Update(element, owners);
                 return RedirectToAction("Index");
             }

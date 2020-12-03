@@ -1,0 +1,40 @@
+﻿@model WebApp.Models.Thought
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Thought</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PeopleAtEase)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.PeopleAtEase, new SelectList(Model.PeopleAtEase.Select(o => o.Name), null, Model.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PeopleTimid)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.PeopleTimid, new SelectList(Model.PeopleTimid.Select(o => o.Name), null, Model.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

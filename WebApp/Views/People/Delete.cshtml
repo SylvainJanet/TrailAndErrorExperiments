@@ -44,7 +44,7 @@
         </dd>
 
         <dt>
-        @Html.DisplayNameFor(model => model.Actions)
+            @Html.DisplayNameFor(model => model.Actions)
         </dt>
         <dd>
             @Html.DropDownListFor(model => model.Actions, new SelectList(Model.Actions.Select(o => o.Name), null, Model.Actions.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
@@ -55,6 +55,20 @@
 
         <dd>
             @Html.DisplayFor(model => model.Vision.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ComfortableThoughts)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.ComfortableThoughts, new SelectList(Model.ComfortableThoughts.Select(o => o.Name), null, Model.ComfortableThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SecretThoughts)
+        </dt>
+        <dd>
+            @Html.DropDownListFor(model => model.SecretThoughts, new SelectList(Model.SecretThoughts.Select(o => o.Name), null, Model.SecretThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
         </dd>
     </dl>
 

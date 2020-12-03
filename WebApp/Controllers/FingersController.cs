@@ -16,9 +16,9 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class FingersController : Controller
     {
-        private MyDbContext db = new MyDbContext();
-        private IFingerService _FingerService;
-        private IPersonService _PersonService;
+        private readonly MyDbContext db = new MyDbContext();
+        private readonly IFingerService _FingerService;
+        private readonly IPersonService _PersonService;
 
         public FingersController()
         {

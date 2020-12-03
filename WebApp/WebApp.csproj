@@ -134,11 +134,8 @@
     <Compile Include="Controllers\MyConstants.cs" />
     <Compile Include="Controllers\PeopleController.cs" />
     <Compile Include="Controllers\ResetDBContentController.cs" />
+    <Compile Include="Controllers\ThoughtsController.cs" />
     <Compile Include="Controllers\WorldVisionsController.cs" />
-    <Compile Include="EntityConfigurations\BrainConfiguration.cs" />
-    <Compile Include="EntityConfigurations\ActionConfiguration.cs" />
-    <Compile Include="EntityConfigurations\FingerConfiguration.cs" />
-    <Compile Include="EntityConfigurations\IdeaConfiguration.cs" />
     <Compile Include="EntityConfigurations\PersonConfiguration.cs" />
     <Compile Include="Exceptions\CannotWriteReadOnlyPropertyException.cs" />
     <Compile Include="Exceptions\CascadeCreationInDBException.cs" />
@@ -170,10 +167,15 @@
     <Compile Include="Migrations\202012012139552_EntityConfigPersonWorldVision.Designer.cs">
       <DependentUpon>202012012139552_EntityConfigPersonWorldVision.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202012031900338_AddedThought.cs" />
+    <Compile Include="Migrations\202012031900338_AddedThought.Designer.cs">
+      <DependentUpon>202012031900338_AddedThought.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Action.cs" />
     <Compile Include="Models\BaseEntity.cs" />
     <Compile Include="Models\Brain.cs" />
+    <Compile Include="Models\Thought.cs" />
     <Compile Include="Models\WorldVision.cs" />
     <Compile Include="Models\Finger.cs" />
     <Compile Include="Models\Idea.cs" />
@@ -190,9 +192,11 @@
     <Compile Include="Repositories\IGenericRepository.cs" />
     <Compile Include="Repositories\IIdeaRepository.cs" />
     <Compile Include="Repositories\IPersonRepository.cs" />
+    <Compile Include="Repositories\IThoughtRepository.cs" />
     <Compile Include="Repositories\IWorldVisionRepository.cs" />
     <Compile Include="Repositories\MyDbContext.cs" />
     <Compile Include="Repositories\PersonRepository.cs" />
+    <Compile Include="Repositories\ThoughtRepository.cs" />
     <Compile Include="Repositories\WorldVisionRepository.cs" />
     <Compile Include="Service\ActionService.cs" />
     <Compile Include="Service\BrainService.cs" />
@@ -205,10 +209,13 @@
     <Compile Include="Service\IGenericService.cs" />
     <Compile Include="Service\IIdeaService.cs" />
     <Compile Include="Service\IPersonService.cs" />
+    <Compile Include="Service\IThoughtService.cs" />
     <Compile Include="Service\IWorldVisionService.cs" />
     <Compile Include="Service\PersonService.cs" />
+    <Compile Include="Service\ThoughtService.cs" />
     <Compile Include="Service\WorldVisionService.cs" />
-    <Compile Include="Tools\GenericTools.cs" />
+    <Compile Include="Tools\Generic\GenericTools.cs" />
+    <Compile Include="Tools\Generic\PropToNull.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-theme.css" />
@@ -291,6 +298,11 @@
     <Content Include="Views\WorldVisions\Details.cshtml" />
     <Content Include="Views\WorldVisions\Edit.cshtml" />
     <Content Include="Views\WorldVisions\Index.cshtml" />
+    <Content Include="Views\Thoughts\Create.cshtml" />
+    <Content Include="Views\Thoughts\Delete.cshtml" />
+    <Content Include="Views\Thoughts\Details.cshtml" />
+    <Content Include="Views\Thoughts\Edit.cshtml" />
+    <Content Include="Views\Thoughts\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -314,6 +326,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202012012139552_EntityConfigPersonWorldVision.resx">
       <DependentUpon>202012012139552_EntityConfigPersonWorldVision.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202012031900338_AddedThought.resx">
+      <DependentUpon>202012031900338_AddedThought.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

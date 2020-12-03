@@ -1,12 +1,12 @@
-﻿@model IEnumerable<WebApp.Models.Person>
+﻿@model IEnumerable<WebApp.Models.Thought>
 
 @{
     ViewBag.Title = "Index";
 }
 
-<h2>People List</h2>
+<h2>Index Thought</h2>
 
-@using (Html.BeginForm("Search", "People", FormMethod.Get))
+@using (Html.BeginForm("Search", "Brains", FormMethod.Get))
 {
     //@Html.AntiForgeryToken()
     <input type="hidden" name="page" value="@ViewBag.Page" />
@@ -39,44 +39,32 @@
             @Html.DisplayNameFor(model => model.Name)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Brain.Name)
-        </th>
-        <th>@Html.DisplayNameFor(model => model.Fingers)</th>
-        <th>@Html.DisplayNameFor(model => model.Ideas)</th>
-        <th>@Html.DisplayNameFor(model => model.Actions)</th>
-        <th>
-            @Html.DisplayNameFor(model => model.Vision)
+            @Html.DisplayNameFor(model => model.PeopleAtEase)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.ComfortableThoughts)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.SecretThoughts)
+            @Html.DisplayNameFor(model => model.PeopleTimid)
         </th>
         <th></th>
     </tr>
 
     @foreach (var item in Model)
     {
-<tr>
-    <td>
-        @Html.DisplayFor(modelItem => item.Name)
-    </td>
-    <td>
-        @Html.DisplayFor(modelItem => item.Brain.Name)
-    </td>
-    <td>@Html.DropDownListFor(modelItem => item.Fingers, new SelectList(item.Fingers.Select(o => o.Name), null, item.Fingers.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DropDownListFor(modelItem => item.Ideas, new SelectList(item.Ideas.Select(o => o.Name), null, item.Ideas.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DropDownListFor(modelItem => item.Actions, new SelectList(item.Actions.Select(o => o.Name), null, item.Actions.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DisplayFor(modelItem => item.Vision.Name)</td>
-    <td>@Html.DropDownListFor(modelItem => item.ComfortableThoughts, new SelectList(item.ComfortableThoughts.Select(o => o.Name), null, item.ComfortableThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DropDownListFor(modelItem => item.SecretThoughts, new SelectList(item.SecretThoughts.Select(o => o.Name), null, item.SecretThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>
-        @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-        @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-        @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-    </td>
-</tr>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DropDownListFor(modelItem => item.PeopleAtEase, new SelectList(item.PeopleAtEase.Select(o => o.Name), null, item.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+            </td>
+            <td>
+                @Html.DropDownListFor(modelItem => item.PeopleTimid, new SelectList(item.PeopleTimid.Select(o => o.Name), null, item.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>
+        </tr>
     }
 
 </table>

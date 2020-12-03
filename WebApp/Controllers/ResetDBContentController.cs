@@ -10,7 +10,7 @@ namespace WebApp.Controllers
 {
     public class ResetDBContentController : Controller
     {
-        private MyDbContext db = new MyDbContext();
+        private readonly MyDbContext db = new MyDbContext();
 
         public ActionResult Index()
         {
@@ -24,7 +24,21 @@ namespace WebApp.Controllers
             Person p8 = new Person("Person8");
             Person p9 = new Person("Person9");
 
-            foreach (Person person in db.People.Include("Brain").Include("Fingers").Include("Ideas"))
+            foreach (Finger finger in db.Fingers)
+            {
+                db.Fingers.Remove(finger);
+            }
+            foreach (Models.Action el in db.Actions)
+            {
+                db.Actions.Remove(el);
+            }
+            foreach (Thought thought in db.Thoughts)
+            {
+                thought.PeopleAtEase = new List<Person>();
+                thought.PeopleTimid = new List<Person>();
+                db.Entry(thought).State = System.Data.Entity.EntityState.Modified;
+            }
+            foreach (Person person in db.People.Include("Brain").Include("Fingers").Include("Ideas").Include("ComfortableThoughts").Include("SecretThoughts").Include("Vision"))
             {
                 db.People.Remove(person);
             }
@@ -38,6 +52,8 @@ namespace WebApp.Controllers
             db.People.Add(p7);
             db.People.Add(p8);
             db.People.Add(p9);
+
+            db.SaveChanges();
 
             Brain b1 = new Brain("Brain 1 - 1", p1);
             Brain b2 = new Brain("Brain 2 - 2", p2);
@@ -63,6 +79,8 @@ namespace WebApp.Controllers
             db.Brains.Add(b7);
             db.Brains.Add(b8);
             db.Brains.Add(b9);
+
+            db.SaveChanges();
 
             Finger f11 = new Finger("Finger 1 - 1", p1);
             Finger f12 = new Finger("Finger 2 - 1", p1);
@@ -249,6 +267,8 @@ namespace WebApp.Controllers
             db.Fingers.Add(f98);
             db.Fingers.Add(f99);
 
+            db.SaveChanges();
+
             Idea idea1_123 = new Idea("Idea 1 - 123", new List<Person> { p1, p2, p3 });
             Idea idea2_234 = new Idea("Idea 2 - 234", new List<Person> { p2, p3, p4 });
             Idea idea3_345 = new Idea("Idea 3 - 345", new List<Person> { p3, p4, p5 });
@@ -273,6 +293,105 @@ namespace WebApp.Controllers
             db.Ideas.Add(idea7_789);
             db.Ideas.Add(idea8_891);
             db.Ideas.Add(idea9_912);
+
+            db.SaveChanges();
+
+            Models.Action a1 = new Models.Action { Name = "Action 1 - 123", People = { p1, p2, p3 } };
+            Models.Action a2 = new Models.Action { Name = "Action 2 - 234", People = { p2, p3, p4 } };
+            Models.Action a3 = new Models.Action { Name = "Action 3 - 345", People = { p3, p4, p5 } };
+            Models.Action a4 = new Models.Action { Name = "Action 4 - 456", People = { p4, p5, p6 } };
+            Models.Action a5 = new Models.Action { Name = "Action 5 - 567", People = { p5, p6, p7 } };
+            Models.Action a6 = new Models.Action { Name = "Action 6 - 678", People = { p6, p7, p8 } };
+            Models.Action a7 = new Models.Action { Name = "Action 7 - 789", People = { p7, p8, p9 } };
+            Models.Action a8 = new Models.Action { Name = "Action 8 - 891", People = { p8, p9, p1 } };
+            Models.Action a9 = new Models.Action { Name = "Action 9 - 912", People = { p9, p1, p2 } };
+            foreach (Models.Action action in db.Actions)
+            {
+                db.Actions.Remove(action);
+            }
+            db.Actions.Add(a1);
+            db.Actions.Add(a2);
+            db.Actions.Add(a3);
+            db.Actions.Add(a4);
+            db.Actions.Add(a5);
+            db.Actions.Add(a6);
+            db.Actions.Add(a7);
+            db.Actions.Add(a8);
+            db.Actions.Add(a9);
+
+            db.SaveChanges();
+
+            WorldVision wv1 = new WorldVision { Name = "WorldVision 1 - 1" };
+            p1.Vision = wv1;
+            WorldVision wv2 = new WorldVision { Name = "WorldVision 2 - 2" };
+            p2.Vision = wv2;
+            WorldVision wv3 = new WorldVision { Name = "WorldVision 3 - 3" };
+            p3.Vision = wv3;
+            WorldVision wv4 = new WorldVision { Name = "WorldVision 4 - 4" };
+            p4.Vision = wv4;
+            WorldVision wv5 = new WorldVision { Name = "WorldVision 5 - 5" };
+            p5.Vision = wv5;
+            WorldVision wv6 = new WorldVision { Name = "WorldVision 6 - 6" };
+            p6.Vision = wv6;
+            WorldVision wv7 = new WorldVision { Name = "WorldVision 7 - 7" };
+            p7.Vision = wv7;
+            WorldVision wv8 = new WorldVision { Name = "WorldVision 8 - 8" };
+            p8.Vision = wv8;
+            WorldVision wv9 = new WorldVision { Name = "WorldVision 9 - 9" };
+            p9.Vision = wv9;
+            foreach (WorldVision worldVision in db.WorldVisions)
+            {
+                foreach (Person person in db.People.Where(p=>p.Vision.Id == worldVision.Id))
+                {
+                    person.Vision=null;
+                    db.Entry(person).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                }
+                db.WorldVisions.Remove(worldVision);
+            }
+            db.WorldVisions.Add(wv1);
+            db.Entry(p1).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv2);
+            db.Entry(p2).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv3);
+            db.Entry(p3).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv4);
+            db.Entry(p4).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv5);
+            db.Entry(p5).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv6);
+            db.Entry(p6).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv7);
+            db.Entry(p7).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv8);
+            db.Entry(p8).State = System.Data.Entity.EntityState.Modified;
+            db.WorldVisions.Add(wv9);
+            db.Entry(p9).State = System.Data.Entity.EntityState.Modified;
+
+            db.SaveChanges();
+
+            Thought t1 = new Thought { Name="Thought 1 - 123 - 345", PeopleAtEase = { p1, p2, p3 }, PeopleTimid = { p3, p4, p5 } };
+            Thought t2 = new Thought { Name="Thought 2 - 234 - 456", PeopleAtEase = { p2, p3, p4 }, PeopleTimid = { p4, p5, p6 } };
+            Thought t3 = new Thought { Name="Thought 3 - 345 - 567", PeopleAtEase = { p3, p4, p5 }, PeopleTimid = { p5, p6, p7 } };
+            Thought t4 = new Thought { Name="Thought 4 - 456 - 678", PeopleAtEase = { p4, p5, p6 }, PeopleTimid = { p6, p7, p8 } };
+            Thought t5 = new Thought { Name="Thought 5 - 567 - 789", PeopleAtEase = { p5, p6, p7 }, PeopleTimid = { p7, p8, p9 } };
+            Thought t6 = new Thought { Name="Thought 6 - 678 - 891", PeopleAtEase = { p6, p7, p8 }, PeopleTimid = { p8, p9, p1 } };
+            Thought t7 = new Thought { Name="Thought 7 - 789 - 912", PeopleAtEase = { p7, p8, p9 }, PeopleTimid = { p9, p1, p2 } };
+            Thought t8 = new Thought { Name="Thought 8 - 891 - 123", PeopleAtEase = { p8, p9, p1 }, PeopleTimid = { p1, p2, p3 } };
+            Thought t9 = new Thought { Name="Thought 9 - 912 - 234", PeopleAtEase = { p9, p1, p2 }, PeopleTimid = { p2, p3, p4 } };
+            foreach (Thought thought in db.Thoughts)
+            {
+                db.Thoughts.Remove(thought);
+            }
+            db.Thoughts.Add(t1);
+            db.Thoughts.Add(t2);
+            db.Thoughts.Add(t3);
+            db.Thoughts.Add(t4);
+            db.Thoughts.Add(t5);
+            db.Thoughts.Add(t6);
+            db.Thoughts.Add(t7);
+            db.Thoughts.Add(t8);
+            db.Thoughts.Add(t9);
 
             db.SaveChanges();
             return RedirectToAction("Index", "Home");
