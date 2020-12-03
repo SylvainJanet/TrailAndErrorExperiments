@@ -17,7 +17,8 @@
 //        //private IClassOneRequiredToManyService _ClassOneRequiredToManyService;
 //        //private IClassOneToOneRequiredService _ClassOneToOneRequiredService;
 //        //private IClassManyToOneRequiredService _ClassManyToOneService;
-//        //private IClassOneToManyService _ClassOneRequiredToManyService
+//        //private IClassOneToManyService _ClassOneRequiredToManyService;
+//        //private IClassManyNotPropToOneService _ClassManyNotPropToOneService;
 //        #endregion
 
 //        public ClassController()
@@ -29,6 +30,7 @@
 //            //_ClassOneToOneRequiredService = new ClassOneToOneRequiredService(new _ClassOneToOneRequiredRepository(db));
 //            //_ClassManyToOneRequiredService = new ClassManyToOneRequiredService(new ClassManyToOneRepository(db));
 //            //_ClassOneToManyService = new ClassOneToManyService(new ClassToManyRepository(db));
+//            //_ClassManyNotPropToOneService = new ClassManyNotPropToOneService(new ClassManyNotPropToOneRepository(db));
 //            #endregion
 //        }
 
@@ -70,6 +72,7 @@
 //            //ViewBag.ClassOneToOneRequiredId = new SelectList(_ClassOneToOneRequired.GetAllExcludes(1, int.MaxValue, null, c => c.Class == null), "Id", "Name");
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
 //            //return View();
 //        }
 
@@ -88,6 +91,9 @@
 //        #region ClassOneToOneRequired
 //        //public ActionResult Create([Bind(Include = "Id, Name")] Class element, int? Id)
 //        #endregion
+//        //#region OneToManyNotPropId
+//        //public ActionResult Create([Bind(Include = "Id,Name")] class element, int? OneToManyNotPropId)
+//        //#endregion
 //        public ActionResult Create(object element)
 //        {
 //            #region ClassManyToMany
@@ -131,11 +137,20 @@
 //            //    return RedirectToAction("Index");
 //            //}
 //            #endregion
+//            //#region OneToManyNotProp
+//            //if (ModelState.IsValid)
+//            //{
+//            //    OneToManyNotProp obj = OneToManyNotPropId != null ? _OneToManyNotPropService.FindByIdExcludes(OneToManyNotPropId) : null;
+//            //    _PersonService.Save(person, obj);
+//            //    return RedirectToAction("Index");
+//            //}
+//            //#endregion
 
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ClassOneToOneRequiredId = new SelectList(_ClassOneToOneRequired.GetAllExcludes(1, int.MaxValue, null, c => c.Class == null), "Id", "Name");
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
 //            //return View(element);
 //        }
 
@@ -156,6 +171,7 @@
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToMany.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
 //            //TempData["OneRequiredToOne"] = element.OneRequireToOne;
 //            //TempData["OneRequiredToMany"] = element.OneRequiredToMany;
 //            //TempData.Keep();
@@ -177,6 +193,9 @@
 //        #region ClassOneToOneRequired
 //        //public ActionResult Edit([Bind(Include = "Id,Name")] Class element)
 //        #endregion
+//        //#region OneToManyNotPropId
+//        //public ActionResult Create([Bind(Include = "Id,Name")] class element, int? OneToManyNotPropId)
+//        //#endregion
 //        public ActionResult Edit()
 //        {
 //            #region ClassManyToMany
@@ -243,9 +262,19 @@
 //            //}
 //            #endregion
 
+//            //#region OneToManyNotProp
+//            //if (ModelState.IsValid)
+//            //{
+//            //    OneToManyNotProp obj = OneToManyNotPropId != null ? _OneToManyNotPropService.FindByIdExcludes(OneToManyNotPropId) : null;
+//            //    _PersonService.Save(person, obj);
+//            //    return RedirectToAction("Index");
+//            //}
+//            //#endregion
+
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
 //            #region ClassOneRequiredToMany, ClassOneRequiredToOne
 //            //TempDate.Keep()
 //            #endregion
@@ -282,6 +311,10 @@
 //            //foreach (ClassManyRequiredToMany el in _ManyRequiredToManyService.GetAllExcludes(1, int.MaxValue, null, t => t.Owners.Count() == 1 && t.Owners.Where(s => s.Id == id).Count() == 1))
 //            //{
 //            //    _ManyRequiredToManyService.Delete(el);
+//            //}
+//            //foreach (ManyNotPropToOne el in _ManyNotPropToOneService.GetAllExcludes(1, int.MaxValue, null, p => p.propname.Id == id))
+//            //{
+//            //    _ManyNotPropToOneService.UpdateOne(el, "propame", null);
 //            //}
 //            //_ClassService.Delete(id);
 //            return RedirectToAction("Index");
