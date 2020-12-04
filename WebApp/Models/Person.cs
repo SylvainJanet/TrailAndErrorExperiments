@@ -26,18 +26,29 @@ namespace WebApp.Models
 
         public IList<Thought> SecretThoughts { get; set; }
 
+        public Color FavoriteColor { get; set; }
+
+        public Color LeastLikedColor { get; set; }
+
+        public Address Address { get; set; }
+
         public Person(string name) : this()
         {
             Name = name;
         }
 
-        public Person(string name, Brain brain, IList<Finger> fingers, IList<Idea> ideas, IList<Action> actions, WorldVision vision) : this(name)
+        public Person(string name, Brain brain, IList<Finger> fingers, IList<Idea> ideas, IList<Action> actions, WorldVision vision, IList<Thought> comfortableThoughts, IList<Thought> secretThoughts, Color favoriteColor, Color leastLikedColor, Address address) : this(name)
         {
             Brain = brain;
             Fingers = fingers;
             Ideas = ideas;
             Actions = actions;
             Vision = vision;
+            ComfortableThoughts = comfortableThoughts;
+            SecretThoughts = secretThoughts;
+            FavoriteColor = favoriteColor;
+            LeastLikedColor = leastLikedColor;
+            Address = address;
         }
 
         public Person()

@@ -61,6 +61,10 @@ namespace WebApp.EntityConfigurations
                     pt.ToTable("PersonThoughtTimid");
                 });
             //Set will cascade on delete to false in migration
+
+            HasOptional<Color>(p => p.FavoriteColor);
+
+            HasOptional<Color>(p => p.LeastLikedColor);
         }
     }
 }

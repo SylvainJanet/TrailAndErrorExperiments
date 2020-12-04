@@ -394,6 +394,95 @@ namespace WebApp.Controllers
             db.Thoughts.Add(t9);
 
             db.SaveChanges();
+
+            Color c1 = new Color { Name = "Color 1 - 1 - 9" };
+            p1.FavoriteColor = c1;
+            p9.LeastLikedColor = c1;
+            Color c2 = new Color { Name = "Color 2 - 2 - 8" };
+            p2.FavoriteColor = c2;
+            p8.LeastLikedColor = c2;
+            Color c3 = new Color { Name = "Color 3 - 3 - 7" };
+            p3.FavoriteColor = c3;
+            p7.LeastLikedColor = c3;
+            Color c4 = new Color { Name = "Color 4 - 4 - 6" };
+            p4.FavoriteColor = c4;
+            p6.LeastLikedColor = c4;
+            Color c5 = new Color { Name = "Color 5 - 5 - 5" };
+            p5.FavoriteColor = c5;
+            p5.LeastLikedColor = c5;
+            Color c6 = new Color { Name = "Color 6 - 6 - 4" };
+            p6.FavoriteColor = c6;
+            p4.LeastLikedColor = c6;
+            Color c7 = new Color { Name = "Color 7 - 7 - 3" };
+            p7.FavoriteColor = c7;
+            p3.LeastLikedColor = c7;
+            Color c8 = new Color { Name = "Color 8 - 8 - 2" };
+            p8.FavoriteColor = c8;
+            p2.LeastLikedColor = c8;
+            Color c9 = new Color { Name = "Color 9 - 9 - 1" };
+            p9.FavoriteColor = c9;
+            p1.LeastLikedColor = c9;
+            foreach (Color color in db.Colors)
+            {
+                foreach (Person person in db.People.Where(p => p.FavoriteColor.Id == color.Id || p.LeastLikedColor.Id==color.Id))
+                {
+                    person.FavoriteColor = null;
+                    person.LeastLikedColor = null;
+                    db.Entry(person).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                }
+                db.Colors.Remove(color);
+            }
+            db.Colors.Add(c1);
+            db.Colors.Add(c2);
+            db.Colors.Add(c3);
+            db.Colors.Add(c4);
+            db.Colors.Add(c5);
+            db.Colors.Add(c6);
+            db.Colors.Add(c7);
+            db.Colors.Add(c8);
+            db.Colors.Add(c9);
+            db.SaveChanges();
+
+            Address ad1 = new Address { Number = 1, Street ="Person1"};
+            p1.Address = ad1;
+            Address ad2 = new Address { Number = 1, Street = "Person2" };
+            p2.Address = ad2;
+            Address ad3 = new Address { Number = 1, Street = "Person3" };
+            p3.Address = ad3;
+            Address ad4 = new Address { Number = 1, Street = "Person4" };
+            p4.Address = ad4;
+            Address ad5 = new Address { Number = 1, Street = "Person5" };
+            p5.Address = ad5;
+            Address ad6 = new Address { Number = 1, Street = "Person6" };
+            p6.Address = ad6;
+            Address ad7 = new Address { Number = 1, Street = "Person7" };
+            p7.Address = ad7;
+            Address ad8 = new Address { Number = 1, Street = "Person8" };
+            p8.Address = ad8;
+            Address ad9 = new Address { Number = 1, Street = "Person9" };
+            p9.Address = ad9;
+            foreach (Address address in db.Addresses)
+            {
+                Person p = db.People.Where(pp => pp.Address.Number == address.Number && pp.Address.Street == address.Street).SingleOrDefault();
+                if (p != null)
+                {
+                    p.Address = null;
+                    db.Entry(p).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                }
+                db.Addresses.Remove(address);
+            }
+            db.Addresses.Add(ad1);
+            db.Addresses.Add(ad2);
+            db.Addresses.Add(ad3);
+            db.Addresses.Add(ad4);
+            db.Addresses.Add(ad5);
+            db.Addresses.Add(ad6);
+            db.Addresses.Add(ad7);
+            db.Addresses.Add(ad8);
+            db.Addresses.Add(ad9);
+            db.SaveChanges();
             return RedirectToAction("Index", "Home");
         }
 

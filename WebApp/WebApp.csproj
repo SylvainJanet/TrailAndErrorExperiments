@@ -126,7 +126,9 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\ActionsController.cs" />
+    <Compile Include="Controllers\AddressesController.cs" />
     <Compile Include="Controllers\BrainsController.cs" />
+    <Compile Include="Controllers\ColorsController.cs" />
     <Compile Include="Controllers\ControllerModel.cs" />
     <Compile Include="Controllers\FingersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -171,10 +173,20 @@
     <Compile Include="Migrations\202012031900338_AddedThought.Designer.cs">
       <DependentUpon>202012031900338_AddedThought.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202012040112071_AddClassesColorAndAddress.cs" />
+    <Compile Include="Migrations\202012040112071_AddClassesColorAndAddress.Designer.cs">
+      <DependentUpon>202012040112071_AddClassesColorAndAddress.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202012040156330_AddressIsBaseEntity.cs" />
+    <Compile Include="Migrations\202012040156330_AddressIsBaseEntity.Designer.cs">
+      <DependentUpon>202012040156330_AddressIsBaseEntity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Action.cs" />
+    <Compile Include="Models\Address.cs" />
     <Compile Include="Models\BaseEntity.cs" />
     <Compile Include="Models\Brain.cs" />
+    <Compile Include="Models\Color.cs" />
     <Compile Include="Models\Thought.cs" />
     <Compile Include="Models\WorldVision.cs" />
     <Compile Include="Models\Finger.cs" />
@@ -182,11 +194,15 @@
     <Compile Include="Models\Person.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\ActionRepository.cs" />
+    <Compile Include="Repositories\AddressRepository.cs" />
     <Compile Include="Repositories\BrainRepository.cs" />
+    <Compile Include="Repositories\ColorRepository.cs" />
     <Compile Include="Repositories\FingerRepository.cs" />
     <Compile Include="Repositories\GenericRepository.cs" />
     <Compile Include="Repositories\IActionRepository.cs" />
+    <Compile Include="Repositories\IAddressRepository.cs" />
     <Compile Include="Repositories\IBrainRepository.cs" />
+    <Compile Include="Repositories\IColorRepository.cs" />
     <Compile Include="Repositories\IdeaRepository.cs" />
     <Compile Include="Repositories\IFingerRepository.cs" />
     <Compile Include="Repositories\IGenericRepository.cs" />
@@ -199,11 +215,15 @@
     <Compile Include="Repositories\ThoughtRepository.cs" />
     <Compile Include="Repositories\WorldVisionRepository.cs" />
     <Compile Include="Service\ActionService.cs" />
+    <Compile Include="Service\AddressService.cs" />
     <Compile Include="Service\BrainService.cs" />
+    <Compile Include="Service\ColorService.cs" />
     <Compile Include="Service\FingerService.cs" />
     <Compile Include="Service\GenericService.cs" />
     <Compile Include="Service\IActionService.cs" />
+    <Compile Include="Service\IAddressService.cs" />
     <Compile Include="Service\IBrainService.cs" />
+    <Compile Include="Service\IColorService.cs" />
     <Compile Include="Service\IdeaService.cs" />
     <Compile Include="Service\IFingerService.cs" />
     <Compile Include="Service\IGenericService.cs" />
@@ -303,6 +323,16 @@
     <Content Include="Views\Thoughts\Details.cshtml" />
     <Content Include="Views\Thoughts\Edit.cshtml" />
     <Content Include="Views\Thoughts\Index.cshtml" />
+    <Content Include="Views\Addresses\Create.cshtml" />
+    <Content Include="Views\Addresses\Delete.cshtml" />
+    <Content Include="Views\Addresses\Details.cshtml" />
+    <Content Include="Views\Addresses\Edit.cshtml" />
+    <Content Include="Views\Addresses\Index.cshtml" />
+    <Content Include="Views\Colors\Create.cshtml" />
+    <Content Include="Views\Colors\Delete.cshtml" />
+    <Content Include="Views\Colors\Details.cshtml" />
+    <Content Include="Views\Colors\Edit.cshtml" />
+    <Content Include="Views\Colors\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -329,6 +359,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202012031900338_AddedThought.resx">
       <DependentUpon>202012031900338_AddedThought.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202012040112071_AddClassesColorAndAddress.resx">
+      <DependentUpon>202012040112071_AddClassesColorAndAddress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202012040156330_AddressIsBaseEntity.resx">
+      <DependentUpon>202012040156330_AddressIsBaseEntity.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

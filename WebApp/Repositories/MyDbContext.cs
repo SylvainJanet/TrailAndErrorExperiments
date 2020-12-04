@@ -22,6 +22,8 @@ namespace WebApp.Repositories
         public virtual DbSet<Models.Action> Actions { get; set; }
         public virtual DbSet<WorldVision> WorldVisions { get; set; }
         public virtual DbSet<Thought> Thoughts { get; set; }
+        public virtual DbSet<Color> Colors { get; set; }
+        public virtual DbSet<Address> Addresses { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
