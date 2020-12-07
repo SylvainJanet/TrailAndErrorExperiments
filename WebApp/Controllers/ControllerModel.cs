@@ -310,19 +310,19 @@
 //            //if (ModelState.IsValid)
 //            //{
 //            //    ClassOneNotRequiredToMany obj = _OneNotRequiredToManyService.FindByIdExcludesTracked(objId);
-//            //    _ClassService.Save(element,obj);
+//            //    _ClassService.Update(element,obj);
 //            //    return RedirectToAction("Index");
 //            //}
 //            #endregion
 
-//            //#region OneToManyNotProp
+//            #region OneToManyNotProp
 //            //if (ModelState.IsValid)
 //            //{
 //            //    OneToManyNotProp obj = OneToManyNotPropId != null ? _OneToManyNotPropService.FindByIdExcludes(OneToManyNotPropId) : null;
-//            //    _PersonService.Save(person, obj);
+//            //    _PersonService.Update(person, obj);
 //            //    return RedirectToAction("Index");
 //            //}
-//            //#endregion
+//            #endregion
 
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
@@ -380,6 +380,14 @@
 //            //foreach (ManyToManyMultiple obj in _ManyToManyMultipleService.GetAllExcludes(1, int.MaxValue, null, t => t.Prop2.Where(p => p.Id == id).Count() >= 1))
 //            //{
 //            //    _ManyToManyMultipleService.UpdateOne(person, "Prop2", obj.Prop2.Where(p => p.Id != id).ToList());
+//            //}
+//            //foreach (ManyNotPropToOneMultiple obj in _ManyNotPropToOneMultipleService.GetAllExcludes(1, int.MaxValue, null, p => p.Prop1.Id == id))
+//            //{
+//            //    _ManyNotPropToOneMultipleService.UpdateOne(obj, "Prop1", null);
+//            //}
+//            //foreach (ManyNotPropToOneMultiple obj in _ManyNotPropToOneMultipleService.GetAllExcludes(1, int.MaxValue, null, p => p.Prop2.Id == id))
+//            //{
+//            //    _ManyNotPropToOneMultipleService.UpdateOne(obj, "Prop2", null);
 //            //}
 //            //_ClassService.Delete(id);
 //            return RedirectToAction("Index");

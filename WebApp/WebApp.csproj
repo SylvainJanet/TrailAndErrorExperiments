@@ -130,6 +130,7 @@
     <Compile Include="Controllers\BrainsController.cs" />
     <Compile Include="Controllers\ColorsController.cs" />
     <Compile Include="Controllers\ControllerModel.cs" />
+    <Compile Include="Controllers\EmptyDBController.cs" />
     <Compile Include="Controllers\FingersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\IdeasController.cs" />
@@ -336,6 +337,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\EmptyDB\" />
     <Folder Include="Views\ResetDBContent\" />
   </ItemGroup>
   <ItemGroup>

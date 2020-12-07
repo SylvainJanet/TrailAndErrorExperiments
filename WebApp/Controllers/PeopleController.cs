@@ -25,6 +25,7 @@ namespace WebApp.Controllers
         private readonly IActionService _ActionService;
         private readonly IWorldVisionService _WorldVisionService;
         private readonly IThoughtService _ThoughtService;
+        private readonly IColorService _ColorService;
 
         public PeopleController()
         {
@@ -35,6 +36,7 @@ namespace WebApp.Controllers
             _ActionService = new ActionService(new ActionRepository(db));
             _WorldVisionService = new WorldVisionService(new WorldVisionRepository(db));
             _ThoughtService = new ThoughtService(new ThoughtRepository(db));
+            _ColorService = new ColorService(new ColorRepository(db));
         }
         
         [HttpGet] //localhost:xxx/users/1/15
@@ -74,6 +76,8 @@ namespace WebApp.Controllers
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
+            ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
             return View();
         }
 
@@ -83,23 +87,25 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret)
+        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId)
         {
             if (ModelState.IsValid)
             {
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
-                List<Thought> owners = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
-                List<Thought> owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                if (owners == null)
-                {
-                    _PersonService.Save(person, ideas, actions, worldVision, new PropToNull("ComfortableThoughts"), owners2);
-                }
+                object owners, owners2, FavoriteColor, LessLikedColor;
+                if (ThoughtsComfy == null)
+                    owners = new PropToNull("ComfortableThoughts");
+                else 
+                    owners = _ThoughtService.FindManyByIdExcludes(ThoughtsComfy);
+                owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                if (FavoriteColorId == null)
+                    FavoriteColor = new PropToNull("FavoriteColor");
                 else
-                {
-                    _PersonService.Save(person, ideas, actions, worldVision, owners, owners2);
-                }
+                    FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
+                LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                _PersonService.Save(person, ideas, actions, worldVision, owners, owners2,FavoriteColor,LessLikedColor);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
@@ -107,6 +113,8 @@ namespace WebApp.Controllers
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
+            ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
             return View(person);
         }
 
@@ -128,6 +136,8 @@ namespace WebApp.Controllers
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
+            ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
             TempData["Brain"] = person.Brain;
             TempData["Fingers"] = person.Fingers;
             TempData.Keep();
@@ -140,7 +150,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId)
         {
             if (ModelState.IsValid)
             {
@@ -157,16 +167,18 @@ namespace WebApp.Controllers
                 {
                     _ActionService.Delete(el);
                 }
-                List<Thought> owners = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
-                List<Thought> owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                if (owners == null)
-                {
-                    _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, new PropToNull("ComfortableThoughts"), owners2);
-                }
+                object owners, owners2, FavoriteColor, LessLikedColor;
+                if (ThoughtsComfy == null)
+                    owners = new PropToNull("ComfortableThoughts");
                 else
-                {
-                    _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2);
-                }
+                    owners = _ThoughtService.FindManyByIdExcludes(ThoughtsComfy);
+                owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                if (FavoriteColorId == null)
+                    FavoriteColor = new PropToNull("FavoriteColor");
+                else
+                    FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
+                LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2, FavoriteColor, LessLikedColor);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
@@ -174,6 +186,8 @@ namespace WebApp.Controllers
             ViewBag.WorldVisionId = new SelectList(_WorldVisionService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsComfy = new MultiSelectList(_ThoughtService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
+            ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
+            ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
             TempData.Keep();
             return View(person);
         }

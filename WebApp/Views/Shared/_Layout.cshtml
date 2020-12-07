@@ -34,11 +34,12 @@
                     <li>@Html.ActionLink("À propos de", "About", "Home")</li>
                     <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
                     <li>@Html.ActionLink("Rest DB Content", "Index", "ResetDBContent")</li>
+                    <li>@Html.ActionLink("Empty DB Content", "Index", "EmptyDB")</li>
                 </ul>
             </div>
         </div>
     </div>
-    <div class="container body-content">
+    <div class="container body-content" style=" padding-top: 120px">
         @RenderBody()
         <hr />
         <footer>

@@ -8,112 +8,146 @@ using System.Web;
 using System.Web.Mvc;
 using WebApp.Models;
 using WebApp.Repositories;
+using WebApp.Service;
 
 namespace WebApp.Controllers
 {
+    [RoutePrefix("colors")]
+    [Route("{action=index}")]
     public class ColorsController : Controller
     {
-        private readonly MyDbContext db = new MyDbContext();
+        private MyDbContext db = new MyDbContext();
+        #region Services
+        private readonly IColorService _ColorService;
+        private readonly IPersonService _PersonService;
+        #endregion
 
-        // GET: Colors
-        public ActionResult Index()
+        public ColorsController()
         {
-            return View(db.Colors.ToList());
+            #region Services Init
+            _ColorService = new ColorService(new ColorRepository(db));
+            _PersonService = new PersonService(new PersonRepository(db));
+            #endregion
         }
 
-        // GET: Colors/Details/5
+        [HttpGet]
+        [Route("{page?}/{maxByPage?}/{searchField?}")]
+        public ActionResult Index(int page = 1, int maxByPage = MyConstants.MAX_BY_PAGE, string SearchField = "")
+        {
+            List<Color> elements = _ColorService.FindAllIncludes(page, maxByPage, SearchField);
+            ViewBag.NextExist = _ColorService.NextExist(page, maxByPage, SearchField);
+            ViewBag.Page = page;
+            ViewBag.MaxByPage = maxByPage;
+            ViewBag.SearchField = SearchField;
+            return View("Index", elements);
+        }
+
+        [HttpGet]
+        [Route("Details/{id}")]
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Color color = db.Colors.Find(id);
-            if (color == null)
+           Color element = _ColorService.FindByIdIncludes(id);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(color);
+            return View(element);
         }
 
-        // GET: Colors/Create
+        [HttpGet]
+        [Route("Create")]
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: Colors/Create
-        // Afin de déjouer les attaques par survalidation, activez les propriétés spécifiques auxquelles vous voulez établir une liaison. Pour 
-        // plus de détails, consultez https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Name")] Color color)
+        [Route("Create")]
+        public ActionResult Create(Color element)
         {
             if (ModelState.IsValid)
             {
-                db.Colors.Add(color);
-                db.SaveChanges();
+                _ColorService.Save(element);
                 return RedirectToAction("Index");
             }
-
-            return View(color);
+            return View(element);
         }
 
-        // GET: Colors/Edit/5
+        [HttpGet]
+        [Route("Edit/{id?}")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Color color = db.Colors.Find(id);
-            if (color == null)
+           Color element = _ColorService.FindByIdIncludes(id);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(color);
+            return View(element);
         }
 
-        // POST: Colors/Edit/5
-        // Afin de déjouer les attaques par survalidation, activez les propriétés spécifiques auxquelles vous voulez établir une liaison. Pour 
-        // plus de détails, consultez https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Color color)
+        [Route("Edit")]
+        public ActionResult Edit(Color element)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(color).State = EntityState.Modified;
-                db.SaveChanges();
+                _ColorService.Update(element);
                 return RedirectToAction("Index");
             }
-            return View(color);
+            return View();
         }
 
-        // GET: Colors/Delete/5
+        [HttpGet]
+        [Route("Delete/{id}")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Color color = db.Colors.Find(id);
-            if (color == null)
+            Color element = _ColorService.FindByIdIncludes(id);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(color);
+            return View(element);
         }
 
-        // POST: Colors/Delete/5
+        // POST: People/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Route("Delete/{id}")]
         public ActionResult DeleteConfirmed(int id)
         {
-            Color color = db.Colors.Find(id);
-            db.Colors.Remove(color);
-            db.SaveChanges();
+            foreach (Person person in _PersonService.GetAllExcludes(1,int.MaxValue,null, p=>p.FavoriteColor.Id==id))
+            {
+                _PersonService.UpdateOne(person, "FavoriteColor", null);
+            }
+            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.LeastLikedColor.Id == id))
+            {
+                _PersonService.UpdateOne(person, "LeastLikedColor", null);
+            }
+            _ColorService.Delete(id);
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [Route("Search")]
+        public ActionResult Search([Bind(Include = ("page, maxByPage, SearchField"))] int page = 1, int maxByPage = MyConstants.MAX_BY_PAGE, string searchField = "")
+        {
+            if (searchField.Trim().Equals(""))
+                return RedirectToAction("Index");
+            return Index(page, maxByPage, searchField);
         }
 
         protected override void Dispose(bool disposing)

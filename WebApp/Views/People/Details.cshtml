@@ -67,6 +67,20 @@
         <dd>
             @Html.DropDownListFor(model => model.SecretThoughts, new SelectList(Model.SecretThoughts.Select(o => o.Name), null, Model.SecretThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
         </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.FavoriteColor)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FavoriteColor.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.LeastLikedColor)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LeastLikedColor.Name)
+        </dd>
     </dl>
 </div>
 <p>
