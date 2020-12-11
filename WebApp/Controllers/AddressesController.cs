@@ -8,111 +8,128 @@ using System.Web;
 using System.Web.Mvc;
 using WebApp.Models;
 using WebApp.Repositories;
+using WebApp.Service;
 
 namespace WebApp.Controllers
 {
+    [RoutePrefix("addresses")]
+    [Route("{action=index}")]
     public class AddressesController : Controller
     {
         private readonly MyDbContext db = new MyDbContext();
+        private readonly IAddressService _AddressService;
+        private readonly IPersonService _PersonService;
 
-        // GET: Addresses
-        public ActionResult Index()
+        public AddressesController()
         {
-            return View(db.Addresses.ToList());
+            _AddressService = new AddressService(new AddressRepository(db));
+            _PersonService = new PersonService(new PersonRepository(db));
         }
 
-        // GET: Addresses/Details/5
-        public ActionResult Details(int? id)
+        [HttpGet]
+        [Route("{page?}/{maxByPage?}/{searchField?}")]
+        public ActionResult Index(int page = 1, int maxByPage = MyConstants.MAX_BY_PAGE, string SearchField = "")
         {
-            if (id == null)
+            List<Address> elements = _AddressService.FindAllIncludes(page, maxByPage, SearchField);
+            ViewBag.NextExist = _AddressService.NextExist(page, maxByPage, SearchField);
+            ViewBag.Page = page;
+            ViewBag.MaxByPage = maxByPage;
+            ViewBag.SearchField = SearchField;
+            return View("Index", elements);
+        }
+
+        [HttpGet]
+        [Route("Details/{number?}/{street?}")]
+        public ActionResult Details(int? number, string street)
+        {
+            if (number == null || street == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Address address = db.Addresses.Find(id);
-            if (address == null)
+            Address element = _AddressService.FindByIdIncludes(number, street);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(address);
+            return View(element);
         }
 
-        // GET: Addresses/Create
+        [HttpGet]
+        [Route("Create")]
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: Addresses/Create
-        // Afin de déjouer les attaques par survalidation, activez les propriétés spécifiques auxquelles vous voulez établir une liaison. Pour 
-        // plus de détails, consultez https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Create")]
         public ActionResult Create([Bind(Include = "Number,Street")] Address address)
         {
             if (ModelState.IsValid)
             {
-                db.Addresses.Add(address);
-                db.SaveChanges();
+                _AddressService.Save(address);
                 return RedirectToAction("Index");
             }
 
             return View(address);
         }
 
-        // GET: Addresses/Edit/5
-        public ActionResult Edit(int? id)
+        [HttpGet]
+        [Route("Edit/{number?}/{street?}")]
+        public ActionResult Edit(int? number, string street)
         {
-            if (id == null)
+            if (number == null || street == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Address address = db.Addresses.Find(id);
-            if (address == null)
+            Address element = _AddressService.FindByIdIncludes(number, street);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(address);
+            return View(element);
         }
 
-        // POST: Addresses/Edit/5
-        // Afin de déjouer les attaques par survalidation, activez les propriétés spécifiques auxquelles vous voulez établir une liaison. Pour 
-        // plus de détails, consultez https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Edit")]
         public ActionResult Edit([Bind(Include = "Number,Street")] Address address)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(address).State = EntityState.Modified;
-                db.SaveChanges();
+                _AddressService.Update(address);
                 return RedirectToAction("Index");
             }
             return View(address);
         }
 
-        // GET: Addresses/Delete/5
-        public ActionResult Delete(int? id)
+        [HttpGet]
+        [Route("Delete/{number?}/{street?}")]
+        public ActionResult Delete(int? number, string street)
         {
-            if (id == null)
+            if (number == null || street == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Address address = db.Addresses.Find(id);
-            if (address == null)
+            Address element = _AddressService.FindByIdIncludes(number, street);
+            if (element == null)
             {
                 return HttpNotFound();
             }
-            return View(address);
+            return View(element);
         }
 
-        // POST: Addresses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        [Route("Delete/{number}/{street}")]
+        public ActionResult DeleteConfirmed(int number, string street)
         {
-            Address address = db.Addresses.Find(id);
-            db.Addresses.Remove(address);
-            db.SaveChanges();
+            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Address.Number == number && p.Address.Street == street))
+            {
+                _PersonService.UpdateOne(person, "Address", null);
+            }
+            _AddressService.Delete(number,street);
             return RedirectToAction("Index");
         }
 

@@ -26,6 +26,7 @@ namespace WebApp.Controllers
         private readonly IWorldVisionService _WorldVisionService;
         private readonly IThoughtService _ThoughtService;
         private readonly IColorService _ColorService;
+        private readonly IAddressService _AddressService;
 
         public PeopleController()
         {
@@ -37,6 +38,7 @@ namespace WebApp.Controllers
             _WorldVisionService = new WorldVisionService(new WorldVisionRepository(db));
             _ThoughtService = new ThoughtService(new ThoughtRepository(db));
             _ColorService = new ColorService(new ColorRepository(db));
+            _AddressService = new AddressService(new AddressRepository(db));
         }
         
         [HttpGet] //localhost:xxx/users/1/15
@@ -78,8 +80,11 @@ namespace WebApp.Controllers
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
+            ViewBag.Addresskeysstring = new SelectList(_AddressService.GetAllExcludes().Select(a => Address.KeysToDisplayString(a)));
             return View();
         }
+
+        
 
         // POST: People/Create
         // Afin de déjouer les attaques par survalidation, activez les propriétés spécifiques auxquelles vous voulez établir une liaison. Pour 
@@ -87,10 +92,12 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId)
+        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
         {
             if (ModelState.IsValid)
             {
+                object[] Addresskeys = Address.DisplayStringToKeys(Addresskeysstring);
+                Address address = _AddressService.FindByIdExcludes(Addresskeys);
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
@@ -105,7 +112,7 @@ namespace WebApp.Controllers
                 else
                     FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
                 LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
-                _PersonService.Save(person, ideas, actions, worldVision, owners, owners2,FavoriteColor,LessLikedColor);
+                _PersonService.Save(person, ideas, actions, worldVision, owners, owners2,FavoriteColor,LessLikedColor, address);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
@@ -115,6 +122,7 @@ namespace WebApp.Controllers
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
+            ViewBag.Addresskeysstring = new SelectList(_AddressService.GetAllExcludes().Select(a => Address.KeysToDisplayString(a)));
             return View(person);
         }
 
@@ -138,6 +146,7 @@ namespace WebApp.Controllers
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
+            ViewBag.Addresskeysstring = new SelectList(_AddressService.GetAllExcludes().Select(a => Address.KeysToDisplayString(a)));
             TempData["Brain"] = person.Brain;
             TempData["Fingers"] = person.Fingers;
             TempData.Keep();
@@ -150,10 +159,12 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
         {
             if (ModelState.IsValid)
             {
+                object[] Addresskeys = Address.DisplayStringToKeys(Addresskeysstring);
+                Address address = _AddressService.FindByIdExcludes(Addresskeys);
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;

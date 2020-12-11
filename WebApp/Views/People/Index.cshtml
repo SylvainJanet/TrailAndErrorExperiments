@@ -59,6 +59,9 @@
         <th>
             @Html.DisplayNameFor(model => model.LeastLikedColor)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Address)
+        </th>
         <th></th>
     </tr>
 
@@ -71,19 +74,25 @@
     <td>
         @Html.DisplayFor(modelItem => item.Brain.Name)
     </td>
-    <td>@Html.DropDownListFor(modelItem => item.Fingers, new SelectList(item.Fingers.Select(o => o.Name), null, item.Fingers.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DropDownListFor(modelItem => item.Ideas, new SelectList(item.Ideas.Select(o => o.Name), null, item.Ideas.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
+    <td>@Html.DropDownListFor(modelItem => item.Fingers, new SelectList(item.Fingers.Select(o => o.Name), null, item.Fingers.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })</td>
+    <td>@Html.DropDownListFor(modelItem => item.Ideas, new SelectList(item.Ideas.Select(o => o.Name), null, item.Ideas.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })</td>
     <td>@Html.DropDownListFor(modelItem => item.Actions, new SelectList(item.Actions.Select(o => o.Name), null, item.Actions.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
     <td>@Html.DisplayFor(modelItem => item.Vision.Name)</td>
-    <td>@Html.DropDownListFor(modelItem => item.ComfortableThoughts, new SelectList(item.ComfortableThoughts.Select(o => o.Name), null, item.ComfortableThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
-    <td>@Html.DropDownListFor(modelItem => item.SecretThoughts, new SelectList(item.SecretThoughts.Select(o => o.Name), null, item.SecretThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });</td>
+    <td>@Html.DropDownListFor(modelItem => item.ComfortableThoughts, new SelectList(item.ComfortableThoughts.Select(o => o.Name), null, item.ComfortableThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })</td>
+    <td>@Html.DropDownListFor(modelItem => item.SecretThoughts, new SelectList(item.SecretThoughts.Select(o => o.Name), null, item.SecretThoughts.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })</td>
     <td>@Html.DisplayFor(modelItem => item.FavoriteColor.Name)</td>
     <td>@Html.DisplayFor(modelItem => item.LeastLikedColor.Name)</td>
     <td>
-        @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-        @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-        @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+        @if (item.Address != null)
+        {
+            @item.Address.KeysToDisplayString()
+        }
     </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+            @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+            @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+        </td>
 </tr>
     }
 

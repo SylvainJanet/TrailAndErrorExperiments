@@ -6,22 +6,83 @@
 
 <h2>Index</h2>
 
+@using (Html.BeginForm("Search", "Adresses", FormMethod.Get))
+{
+    //@Html.AntiForgeryToken()
+    <input type="hidden" name="page" value="@ViewBag.Page" />
+    <input type="hidden" name="maxByPage" value="@ViewBag.MaxByPage" />
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            <label for="SearchField" class="'control-label col-md-2">Recherche par Name</label>
+            <div class="col-md-10">
+                @Html.Editor("SearchField", new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Rechercher" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+<p class="text-danger">@ViewBag.Msg</p>
+
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
 <table class="table">
     <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Number)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Street)
+        </th>
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Number)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Street)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { number = item.Number, street = item.Street }) |
+                @Html.ActionLink("Details", "Details", new { number = item.Number, street = item.Street }) |
+                @Html.ActionLink("Delete", "Delete", new { number = item.Number, street = item.Street })
+            </td>
+        </tr>
+    }
 
 </table>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        @if (ViewBag.Page > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index",new { page = ViewBag.Page - 1 , maxByPage=ViewBag.MaxByPage, searchField = ViewBag.SearchField })" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Previous</span>
+                </a>
+            </li>
+        }
+        <li class="page-item-active"><a class="page-link" href="#">@ViewBag.Page</a></li>
+        @if (ViewBag.NextExist)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.Page + 1 , maxByPage=ViewBag.MaxByPage, searchField = ViewBag.SearchField})" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

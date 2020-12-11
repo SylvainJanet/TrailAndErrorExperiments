@@ -145,6 +145,7 @@
     <Compile Include="Exceptions\IdListEmptyForClassException.cs" />
     <Compile Include="Exceptions\IdNullExceptionForClass.cs" />
     <Compile Include="Exceptions\InvalidArgumentsForClassException.cs" />
+    <Compile Include="Exceptions\InvalidKeyForClassException.cs" />
     <Compile Include="Exceptions\PropertyNameNotFoundException.cs" />
     <Compile Include="Exceptions\_MyExceptionMessages.cs" />
     <Compile Include="Global.asax.cs">
@@ -178,16 +179,13 @@
     <Compile Include="Migrations\202012040112071_AddClassesColorAndAddress.Designer.cs">
       <DependentUpon>202012040112071_AddClassesColorAndAddress.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202012040156330_AddressIsBaseEntity.cs" />
-    <Compile Include="Migrations\202012040156330_AddressIsBaseEntity.Designer.cs">
-      <DependentUpon>202012040156330_AddressIsBaseEntity.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Action.cs" />
     <Compile Include="Models\Address.cs" />
     <Compile Include="Models\BaseEntity.cs" />
     <Compile Include="Models\Brain.cs" />
     <Compile Include="Models\Color.cs" />
+    <Compile Include="Models\EntityWithKeys.cs" />
     <Compile Include="Models\Thought.cs" />
     <Compile Include="Models\WorldVision.cs" />
     <Compile Include="Models\Finger.cs" />
@@ -199,20 +197,20 @@
     <Compile Include="Repositories\BrainRepository.cs" />
     <Compile Include="Repositories\ColorRepository.cs" />
     <Compile Include="Repositories\FingerRepository.cs" />
-    <Compile Include="Repositories\GenericRepository.cs" />
     <Compile Include="Repositories\IActionRepository.cs" />
     <Compile Include="Repositories\IAddressRepository.cs" />
     <Compile Include="Repositories\IBrainRepository.cs" />
     <Compile Include="Repositories\IColorRepository.cs" />
     <Compile Include="Repositories\IdeaRepository.cs" />
     <Compile Include="Repositories\IFingerRepository.cs" />
-    <Compile Include="Repositories\IGenericRepository.cs" />
     <Compile Include="Repositories\IIdeaRepository.cs" />
     <Compile Include="Repositories\IPersonRepository.cs" />
+    <Compile Include="Repositories\IGenericRepository.cs" />
     <Compile Include="Repositories\IThoughtRepository.cs" />
     <Compile Include="Repositories\IWorldVisionRepository.cs" />
     <Compile Include="Repositories\MyDbContext.cs" />
     <Compile Include="Repositories\PersonRepository.cs" />
+    <Compile Include="Repositories\GenericRepository.cs" />
     <Compile Include="Repositories\ThoughtRepository.cs" />
     <Compile Include="Repositories\WorldVisionRepository.cs" />
     <Compile Include="Service\ActionService.cs" />
@@ -220,19 +218,19 @@
     <Compile Include="Service\BrainService.cs" />
     <Compile Include="Service\ColorService.cs" />
     <Compile Include="Service\FingerService.cs" />
-    <Compile Include="Service\GenericService.cs" />
     <Compile Include="Service\IActionService.cs" />
     <Compile Include="Service\IAddressService.cs" />
     <Compile Include="Service\IBrainService.cs" />
     <Compile Include="Service\IColorService.cs" />
     <Compile Include="Service\IdeaService.cs" />
     <Compile Include="Service\IFingerService.cs" />
-    <Compile Include="Service\IGenericService.cs" />
     <Compile Include="Service\IIdeaService.cs" />
     <Compile Include="Service\IPersonService.cs" />
+    <Compile Include="Service\IGenericService.cs" />
     <Compile Include="Service\IThoughtService.cs" />
     <Compile Include="Service\IWorldVisionService.cs" />
     <Compile Include="Service\PersonService.cs" />
+    <Compile Include="Service\GenericService.cs" />
     <Compile Include="Service\ThoughtService.cs" />
     <Compile Include="Service\WorldVisionService.cs" />
     <Compile Include="Tools\Generic\GenericTools.cs" />
@@ -364,9 +362,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202012040112071_AddClassesColorAndAddress.resx">
       <DependentUpon>202012040112071_AddClassesColorAndAddress.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202012040156330_AddressIsBaseEntity.resx">
-      <DependentUpon>202012040156330_AddressIsBaseEntity.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

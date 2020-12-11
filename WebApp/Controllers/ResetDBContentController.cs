@@ -444,23 +444,23 @@ namespace WebApp.Controllers
             db.Colors.Add(c9);
             db.SaveChanges();
 
-            Address ad1 = new Address { Number = 1, Street ="Person1"};
+            Address ad1 = new Address { Number = 18, Street ="Person1"};
             p1.Address = ad1;
-            Address ad2 = new Address { Number = 1, Street = "Person2" };
+            Address ad2 = new Address { Number = 14, Street = "Person2" };
             p2.Address = ad2;
-            Address ad3 = new Address { Number = 1, Street = "Person3" };
+            Address ad3 = new Address { Number = 15, Street = "Person3" };
             p3.Address = ad3;
-            Address ad4 = new Address { Number = 1, Street = "Person4" };
+            Address ad4 = new Address { Number = 16, Street = "Person4" };
             p4.Address = ad4;
-            Address ad5 = new Address { Number = 1, Street = "Person5" };
+            Address ad5 = new Address { Number = 10, Street = "Person5" };
             p5.Address = ad5;
-            Address ad6 = new Address { Number = 1, Street = "Person6" };
+            Address ad6 = new Address { Number = 13, Street = "Person6" };
             p6.Address = ad6;
-            Address ad7 = new Address { Number = 1, Street = "Person7" };
+            Address ad7 = new Address { Number = 19, Street = "Person7" };
             p7.Address = ad7;
-            Address ad8 = new Address { Number = 1, Street = "Person8" };
+            Address ad8 = new Address { Number = 12, Street = "Person8" };
             p8.Address = ad8;
-            Address ad9 = new Address { Number = 1, Street = "Person9" };
+            Address ad9 = new Address { Number = 11, Street = "Person9" };
             p9.Address = ad9;
             foreach (Address address in db.Addresses)
             {

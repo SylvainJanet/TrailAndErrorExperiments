@@ -36,5 +36,10 @@ namespace WebApp.Exceptions
         {
             return "Property with name " + nameNotFound + " not found for class " + t.Name;
         }
+
+        public static string InvalidKeyForClass(Type t)
+        {
+            return "Invalid key for class " + t.Name;
+        }
     }
 }

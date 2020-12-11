@@ -7,7 +7,7 @@ using System.Web;
 
 namespace WebApp.Models
 {
-    public class Address : BaseEntity
+    public class Address : EntityWithKeys
     {
         [Required]
         [Key]
@@ -28,6 +28,19 @@ namespace WebApp.Models
 
         public Address()
         {
+        }
+
+        public static new object[] DisplayStringToKeys(string s)
+        {
+            string[] cut = s.Split(';');
+            int.TryParse(cut[0].Substring(9, cut[0].Length - 10), out int number);
+            string street = cut[1].Substring(10);
+            return new object[] { number, street };
+        }
+
+        public override string KeysToDisplayString()
+        {
+            return "Number : " + Number + " ; Street : " + Street;
         }
 
         public override bool Equals(object obj)

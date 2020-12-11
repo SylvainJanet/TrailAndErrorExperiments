@@ -86,6 +86,17 @@
         <dd>
             @Html.DisplayFor(model => model.LeastLikedColor.Name)
         </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Address)
+        </dt>
+
+        <dd>
+            @if (Model.Address != null)
+            {
+                @Model.Address.KeysToDisplayString()
+            }
+        </dd>
     </dl>
 
     @using (Html.BeginForm()) {

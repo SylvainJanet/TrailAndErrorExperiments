@@ -14,7 +14,7 @@ namespace WebApp.Service
         {
 
         }
-        
+
         public override Expression<Func<IQueryable<Address>, IOrderedQueryable<Address>>> OrderExpression()
         {
             return null;
