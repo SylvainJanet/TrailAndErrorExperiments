@@ -88,8 +88,36 @@ namespace WebApp.Tools
         /// <returns>The dictionary</returns>
         public static Dictionary<string, Type> DynamicDBListTypes<T>()
         {
+            return DynamicDBListTypesForType(typeof(T));
+        }
+
+        /// <summary>
+        /// An object <c>obj</c> of class <typeparamref name="T"/> has properties <c>obj.PropName</c> of
+        /// class <c>ClassType</c> which is in a <see cref="DbSet"/> of the generic repository 
+        /// <see cref="DataContext"/>. 
+        /// <br/>
+        /// This is every { PropName : ClassType }
+        /// </summary>
+        /// <typeparam name="T">The type invistigated.</typeparam>
+        /// <returns>The dictionary</returns>
+        public static Dictionary<string, Type> DynamicDBTypes<T>()
+        {
+            return DynamicDBTypesForType(typeof(T));
+        }
+
+        /// <summary>
+        /// An object <c>obj</c> of class <typeparamref name="T"/> has properties <c>obj.PropName</c> of
+        /// class <see cref="IList"/>&lt;<c>ClassType</c>&gt; where <c>ClassType</c> is in a <see cref="DbSet"/> of the generic repository 
+        /// <see cref="DataContext"/>. 
+        /// <br/>
+        /// This is every { PropName : ClassType }
+        /// </summary>
+        /// <param name="t">The type invistigated.</param>
+        /// <returns>The dictionary</returns>
+        public static Dictionary<string, Type> DynamicDBListTypesForType(Type t)
+        {
             Dictionary<string, Type> res = new Dictionary<string, Type>();
-            foreach (PropertyInfo property in typeof(T).GetProperties())
+            foreach (PropertyInfo property in t.GetProperties())
             {
                 if (TryListOfWhat(property.PropertyType, out Type innerType))
                 {
@@ -111,12 +139,12 @@ namespace WebApp.Tools
         /// <br/>
         /// This is every { PropName : ClassType }
         /// </summary>
-        /// <typeparam name="T">The type invistigated.</typeparam>
+        /// <param name="t">The type invistigated.</param>
         /// <returns>The dictionary</returns>
-        public static Dictionary<string, Type> DynamicDBTypes<T>()
+        public static Dictionary<string, Type> DynamicDBTypesForType(Type t)
         {
             Dictionary<string, Type> res = new Dictionary<string, Type>();
-            foreach (PropertyInfo property in typeof(T).GetProperties())
+            foreach (PropertyInfo property in t.GetProperties())
             {
                 if (property.PropertyType.IsSubclassOf(typeof(BaseEntity)) ||
                     property.PropertyType.GetProperties().Where(p => p.GetCustomAttribute(typeof(KeyAttribute), false) != null)
