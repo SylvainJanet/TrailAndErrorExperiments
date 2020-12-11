@@ -47,9 +47,9 @@ namespace WebApp.Service
         List<T> ListIncludesTracked();
         bool NextExist(int page = 1, int maxByPage = int.MaxValue, string searchField = "");
         Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> OrderExpression();
-        void Save(T t, params object[] objs);
+        void Save(T t);
         Expression<Func<T, bool>> SearchExpression(string searchField = "");
-        void Update(T t, params object[] objs);
+        void Update(T t);
         void UpdateOne(T t, string propertyName, object newValue);
     }
 }

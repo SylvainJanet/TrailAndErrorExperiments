@@ -72,8 +72,8 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                List<Person> owners = Owners != null ? _PersonService.FindManyByIdExcludes(Owners) : null;
-                _IdeasService.Save(idea, owners);
+                idea.Owners = Owners != null ? _PersonService.FindManyByIdExcludes(Owners) : null;
+                _IdeasService.Save(idea);
                 return RedirectToAction("Index");
             }
             ViewBag.Owners = new MultiSelectList(_PersonService.GetAllExcludes(), "Id", "Name", null);
@@ -107,8 +107,8 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                List<Person> owners = Owners.Length != 0 ? _PersonService.FindManyByIdExcludes(Owners) : null;
-                _IdeasService.Update(idea, owners);
+                idea.Owners = Owners.Length != 0 ? _PersonService.FindManyByIdExcludes(Owners) : null;
+                _IdeasService.Update(idea);
                 return RedirectToAction("Index");
             }
             ViewBag.Ownerss = new MultiSelectList(_PersonService.GetAllExcludes(), "Id", "Name", "Owners");

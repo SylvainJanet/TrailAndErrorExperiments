@@ -96,22 +96,15 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                Address address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
-                List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
-                List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
-                WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
-                object owners, owners2, FavoriteColor, LessLikedColor;
-                if (ThoughtsComfy == null)
-                    owners = new PropToNull("ComfortableThoughts");
-                else 
-                    owners = _ThoughtService.FindManyByIdExcludes(ThoughtsComfy);
-                owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                if (FavoriteColorId == null)
-                    FavoriteColor = new PropToNull("FavoriteColor");
-                else
-                    FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
-                LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
-                _PersonService.Save(person, ideas, actions, worldVision, owners, owners2,FavoriteColor,LessLikedColor, address);
+                person.Address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
+                person.Ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
+                person.Actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
+                person.Vision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
+                person.ComfortableThoughts = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
+                person.SecretThoughts = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                person.LeastLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                _PersonService.Save(person);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
@@ -162,32 +155,17 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                Address address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
-                List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
-                List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
-                WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
-                Brain brain = TempData["Brain"] as Brain;
-                List<Finger> fingers = TempData["Fingers"] as List<Finger>;
-                foreach (Finger finger in _FingerService.GetAllExcludes(1, int.MaxValue, null, f => f.OwnerId == person.Id).Where(f => fingers.Where(ff => ff.Id == f.Id).Count() == 0))
-                {
-                    _FingerService.Delete(finger);
-                }
-                foreach (Models.Action el in _ActionService.GetAllExcludes(1, int.MaxValue, null, t => t.People.Count() == 1 && t.People.Where(s => s.Id == person.Id).Count() == 1).Where(t => !Actions.Contains(t.Id)))
-                {
-                    _ActionService.Delete(el);
-                }
-                object owners, owners2, FavoriteColor, LessLikedColor;
-                if (ThoughtsComfy == null)
-                    owners = new PropToNull("ComfortableThoughts");
-                else
-                    owners = _ThoughtService.FindManyByIdExcludes(ThoughtsComfy);
-                owners2 = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                if (FavoriteColorId == null)
-                    FavoriteColor = new PropToNull("FavoriteColor");
-                else
-                    FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
-                LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
-                _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2, FavoriteColor, LessLikedColor, address);
+                person.Address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
+                person.Ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
+                person.Actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
+                person.Vision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
+                person.Brain = TempData["Brain"] as Brain;
+                person.Fingers = TempData["Fingers"] as List<Finger>;
+                person.ComfortableThoughts = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
+                person.SecretThoughts = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
+                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                person.LeastLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                _PersonService.Update(person);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);
@@ -223,22 +201,6 @@ namespace WebApp.Controllers
         [Route("Delete/{id}")]
         public ActionResult DeleteConfirmed(int id)
         {
-            foreach (Finger finger in _FingerService.GetAllExcludes(1, int.MaxValue, null, f => f.OwnerId == id))
-            {
-                _FingerService.Delete(finger);
-            }   
-            foreach (Models.Action el in _ActionService.GetAllExcludes(1, int.MaxValue, null, t => t.People.Count() == 1 && t.People.Where(p => p.Id == id).Count()==1))
-            {
-                _ActionService.Delete(el);
-            }
-            foreach (Thought thought in _ThoughtService.GetAllExcludes(1, int.MaxValue, null, t => t.PeopleAtEase.Where(p=>p.Id == id).Count()>=1))
-            {
-                _ThoughtService.UpdateOne(thought, "PeopleAtEase", thought.PeopleAtEase.Where(p => p.Id != id).ToList());
-            }
-            foreach (Thought thought in _ThoughtService.GetAllExcludes(1, int.MaxValue, null, t => t.PeopleTimid.Where(p => p.Id == id).Count() >= 1))
-            {
-                _ThoughtService.UpdateOne(thought, "PeopleTimid", thought.PeopleTimid.Where(p => p.Id != id).ToList());
-            }
             _PersonService.Delete(id);
             return RedirectToAction("Index");
         }

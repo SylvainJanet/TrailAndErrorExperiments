@@ -75,17 +75,9 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                object owners;
-                if (PeopleComfy == null)
-                    owners = new PropToNull("PeopleAtEase");
-                else
-                    owners = _PersonService.FindManyByIdExcludes(PeopleComfy);
-                object owners2;
-                if (PeopleSecret == null)
-                    owners2 = new PropToNull("PeopleTimid");
-                else
-                    owners2 = _PersonService.FindManyByIdExcludes(PeopleSecret);
-                _ThoughtService.Save(element, owners, owners2);
+                element.PeopleAtEase = PeopleComfy != null ? _PersonService.FindManyByIdExcludes(PeopleComfy) : null;
+                element.PeopleTimid = PeopleSecret != null ? _PersonService.FindManyByIdExcludes(PeopleSecret) : null;
+                _ThoughtService.Save(element);
                 return RedirectToAction("Index");
             }
             ViewBag.PeopleComfy = new MultiSelectList(_PersonService.GetAllExcludes(), "Id", "Name", null);
@@ -118,16 +110,9 @@ namespace WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                List<Person> owners = PeopleComfy != null ? _PersonService.FindManyByIdExcludes(PeopleComfy) : null;
-                List<Person> owners2 = PeopleSecret != null ? _PersonService.FindManyByIdExcludes(PeopleSecret) : null;
-                if (owners == null)
-                {
-                    _ThoughtService.Update(element, new PropToNull("PeopleAtEase"), owners2);
-                }
-                else
-                {
-                    _ThoughtService.Update(element, owners, owners2);
-                }
+                element.PeopleAtEase = PeopleComfy != null ? _PersonService.FindManyByIdExcludes(PeopleComfy) : null;
+                element.PeopleTimid = PeopleSecret != null ? _PersonService.FindManyByIdExcludes(PeopleSecret) : null;
+                _ThoughtService.Update(element);
                 return RedirectToAction("Index");
             }
             ViewBag.PeopleComfy = new MultiSelectList(_PersonService.GetAllExcludes(), "Id", "Name", null);
@@ -157,14 +142,6 @@ namespace WebApp.Controllers
         [Route("Delete/{id}")]
         public ActionResult DeleteConfirmed(int id)
         {
-            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, t => t.ComfortableThoughts.Where(p => p.Id == id).Count() >= 1))
-            {
-                _PersonService.UpdateOne(person, "ComfortableThoughts", person.ComfortableThoughts.Where(p => p.Id != id).ToList());
-            }
-            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, t => t.SecretThoughts.Where(p => p.Id == id).Count() >= 1))
-            {
-                _PersonService.UpdateOne(person, "SecretThoughts", person.SecretThoughts.Where(p => p.Id != id).ToList());
-            }
             _ThoughtService.Delete(id);
             return RedirectToAction("Index");
         }

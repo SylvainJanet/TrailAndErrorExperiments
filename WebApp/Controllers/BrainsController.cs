@@ -74,7 +74,7 @@ namespace WebApp.Controllers
             if (ModelState.IsValid && Id.HasValue)
             {
                 brain.Owner = _PersonService.FindByIdExcludesTracked(Id);
-                _BrainService.Save(brain,brain.Owner);
+                _BrainService.Save(brain);
                 return RedirectToAction("Index");
             }
             ViewBag.Id = new SelectList(_PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Brain == null), "Id", "Name");
@@ -109,7 +109,7 @@ namespace WebApp.Controllers
             if (ModelState.IsValid)
             {
                 brain.Owner = _PersonService.FindByIdExcludes(brain.Id);
-                _BrainService.Update(brain,brain.Owner);
+                _BrainService.Update(brain);
                 return RedirectToAction("Index");
             }
             return View(brain);

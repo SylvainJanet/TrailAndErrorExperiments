@@ -125,10 +125,6 @@ namespace WebApp.Controllers
         [Route("Delete/{number}/{street}")]
         public ActionResult DeleteConfirmed(int number, string street)
         {
-            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Address.Number == number && p.Address.Street == street))
-            {
-                _PersonService.UpdateOne(person, "Address", null);
-            }
             _AddressService.Delete(number,street);
             return RedirectToAction("Index");
         }

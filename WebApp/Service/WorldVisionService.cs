@@ -15,15 +15,56 @@ namespace WebApp.Service
 
         }
 
+        public override void Delete(params object[] objs)
+        {
+            using (MyDbContext db = new MyDbContext())
+            {
+                IPersonService _PersonService = new PersonService(new PersonRepository(db));
+                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Vision.Id == (int?)objs[0]))
+                {
+                    _PersonService.UpdateOne(person, "Vision", null);
+                }
+            }
+            _repository.Delete(objs);
+        }
+
+        public override void Delete(WorldVision t)
+        {
+            using (MyDbContext db = new MyDbContext())
+            {
+                IPersonService _PersonService = new PersonService(new PersonRepository(db));
+                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Vision.Id == t.Id))
+                {
+                    _PersonService.UpdateOne(person, "Vision", null);
+                }
+            }
+            _repository.Delete(t);
+        }
+
         public override Expression<Func<IQueryable<WorldVision>, IOrderedQueryable<WorldVision>>> OrderExpression()
         {
             return null;
+        }
+
+        public override void Save(WorldVision t)
+        {
+            _repository.Save(t);
         }
 
         public override Expression<Func<WorldVision, bool>> SearchExpression(string searchField = "")
         {
             searchField = searchField.Trim().ToLower();
             return b => b.Name.Contains(searchField);
+        }
+
+        public override void Update(WorldVision t)
+        {
+            _repository.Update(t);
+        }
+
+        public override void UpdateOne(WorldVision t, string propertyName, object newValue)
+        {
+            _repository.UpdateOne(t, propertyName, newValue);
         }
     }
 }

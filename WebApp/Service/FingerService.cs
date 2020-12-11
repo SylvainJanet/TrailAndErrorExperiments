@@ -15,15 +15,40 @@ namespace WebApp.Service
 
         }
 
+        public override void Delete(params object[] objs)
+        {
+            _repository.Delete(objs);
+        }
+
+        public override void Delete(Finger t)
+        {
+            _repository.Delete(t);
+        }
+
         public override Expression<Func<IQueryable<Finger>, IOrderedQueryable<Finger>>> OrderExpression()
         {
             return null;
+        }
+
+        public override void Save(Finger t)
+        {
+            _repository.Save(t, t.Owner);
         }
 
         public override Expression<Func<Finger, bool>> SearchExpression(string searchField = "")
         {
             searchField = searchField.Trim().ToLower();
             return b => b.Name.Contains(searchField);
+        }
+
+        public override void Update(Finger t)
+        {
+            _repository.Update(t, t.Owner);
+        }
+
+        public override void UpdateOne(Finger t, string propertyName, object newValue)
+        {
+            _repository.UpdateOne(t, propertyName, newValue);
         }
     }
 }

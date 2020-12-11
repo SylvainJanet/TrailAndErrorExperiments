@@ -133,10 +133,6 @@ namespace WebApp.Controllers
         [Route("Delete/{id}")]
         public ActionResult DeleteConfirmed(int id)
         {
-            foreach (Person person in _PersonService.GetAllExcludes(1,int.MaxValue,null,p=>p.Vision.Id==id))
-            {
-                _PersonService.UpdateOne(person,"Vision",null);
-            }
             _WorldVisionService.Delete(id);
             return RedirectToAction("Index");
         }

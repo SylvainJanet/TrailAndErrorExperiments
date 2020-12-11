@@ -672,6 +672,40 @@ namespace WebApp.Repositories
         /// with <typeparamref name="T"/>.</remark>
         /// <br/>
         /// <remark>Objects not mentionned will be set to either <see langword="null"/> or <see langword="new"/> <c>List&lt;Class&gt;()</c></remark>
+        /// <br/>
+        /// Objects in <paramref name="objs"/> with values <see langword="null"/> will be ignored.
+        /// <br/>
+        /// Order is not important, unless properties are of the same type. In that case, they will be assigned
+        /// in the same order as they are declared in the class <typeparamref name="T"/>.
+        /// <br/>
+        /// Properties can be forced to either <see langword="null"/> or <see langword="new"/> <c>List&lt;Class&gt;()</c> by having the set in <paramref name="objs"/>
+        /// as a type <see cref="PropToNull"/> with <see cref="PropToNull.PropertyName"/> set to the name
+        /// of the property. Usefull if <typeparamref name="T"/> is in many relationships with the same type. 
+        /// See exemple for more information.
+        /// <br/>
+        /// <example>Exemple : assume T is a class deriving from <see cref="BaseEntity"/> with properties 
+        /// <list type="bullet">
+        /// <item>S propS</item>
+        /// <item>Q propQ1</item>
+        /// <item>Q propQ2</item>
+        /// <item>R propR</item>
+        /// </list>
+        /// where Q,R and S are other types in DB. Say you want to setup the <see cref="CustomParam"/> for the following values :
+        /// <br/>
+        /// propS = <see langword="null"/>, propQ1 = <see langword="null"/>, propQ2 = VARQ, propR = VARR. To do so, call :
+        /// <code>
+        /// Save(<see langword="new"/> PropToNull("propQ1"), VARQ , VARR)
+        /// </code>
+        /// Reason and purpose : <see langword="null"/> values are ignored (since they could be assigned to any DB 
+        /// type a priori, leading to ambiguity if some properties values are not specified)
+        /// and in the case of many properties of the same type, the order set in the definition of the 
+        /// class <typeparamref name="T"/> has to be respected. Thus, doing either
+        /// <c>Save(<see langword="null"/>, VARQ, VARR)</c> or <c>Save(VARQ, VARR)</c> would result in setting :
+        /// <br/>
+        /// propS = <see langword="null"/>, propQ1 = VARQ, propQ2 = <see langword="null"/>, propR = VARR
+        /// <br/>
+        /// which is not what was wanted. <see cref="PropToNull"/> is usefull only for that specific case.
+        /// </example>
         /// </summary>
         /// <param name="t">The object to update</param>
         /// <param name="objs">Objects that are properties of the object <paramref name="t"/> and that
@@ -706,6 +740,40 @@ namespace WebApp.Repositories
         /// with <typeparamref name="T"/>.</remark>
         /// <br/>
         /// <remark>Objects not mentionned will be set to either <see langword="null"/> or <see langword="new"/> <c>List&lt;Class&gt;()</c>.</remark>
+        /// <br/>
+        /// Objects in <paramref name="objs"/> with values <see langword="null"/> will be ignored.
+        /// <br/>
+        /// Order is not important, unless properties are of the same type. In that case, they will be assigned
+        /// in the same order as they are declared in the class <typeparamref name="T"/>.
+        /// <br/>
+        /// Properties can be forced to either <see langword="null"/> or <see langword="new"/> <c>List&lt;Class&gt;()</c> by having the set in <paramref name="objs"/>
+        /// as a type <see cref="PropToNull"/> with <see cref="PropToNull.PropertyName"/> set to the name
+        /// of the property. Usefull if <typeparamref name="T"/> is in many relationships with the same type. 
+        /// See exemple for more information.
+        /// <br/>
+        /// <example>Exemple : assume T is a class deriving from <see cref="BaseEntity"/> with properties 
+        /// <list type="bullet">
+        /// <item>S propS</item>
+        /// <item>Q propQ1</item>
+        /// <item>Q propQ2</item>
+        /// <item>R propR</item>
+        /// </list>
+        /// where Q,R and S are other types in DB. Say you want to setup the <see cref="CustomParam"/> for the following values :
+        /// <br/>
+        /// propS = <see langword="null"/>, propQ1 = <see langword="null"/>, propQ2 = VARQ, propR = VARR. To do so, call :
+        /// <code>
+        /// Update(<see langword="new"/> PropToNull("propQ1"), VARQ , VARR)
+        /// </code>
+        /// Reason and purpose : <see langword="null"/> values are ignored (since they could be assigned to any DB 
+        /// type a priori, leading to ambiguity if some properties values are not specified)
+        /// and in the case of many properties of the same type, the order set in the definition of the 
+        /// class <typeparamref name="T"/> has to be respected. Thus, doing either
+        /// <c>Update(<see langword="null"/>, VARQ, VARR)</c> or <c>Update(VARQ, VARR)</c> would result in setting :
+        /// <br/>
+        /// propS = <see langword="null"/>, propQ1 = VARQ, propQ2 = <see langword="null"/>, propR = VARR
+        /// <br/>
+        /// which is not what was wanted. <see cref="PropToNull"/> is usefull only for that specific case.
+        /// </example>
         /// </summary>
         /// <param name="t">The object to update</param>
         /// <param name="objs">Objects that are properties of the object <paramref name="t"/> and that

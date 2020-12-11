@@ -129,14 +129,6 @@ namespace WebApp.Controllers
         [Route("Delete/{id}")]
         public ActionResult DeleteConfirmed(int id)
         {
-            foreach (Person person in _PersonService.GetAllExcludes(1,int.MaxValue,null, p=>p.FavoriteColor.Id==id))
-            {
-                _PersonService.UpdateOne(person, "FavoriteColor", null);
-            }
-            foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.LeastLikedColor.Id == id))
-            {
-                _PersonService.UpdateOne(person, "LeastLikedColor", null);
-            }
             _ColorService.Delete(id);
             return RedirectToAction("Index");
         }

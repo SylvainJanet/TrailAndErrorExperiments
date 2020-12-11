@@ -49,15 +49,9 @@ namespace WebApp.Service
             return _repository.Count(pedicateWhere);
         }
 
-        public void Delete(params object[] objs)
-        {
-            _repository.Delete(objs);
-        }
+        public abstract void Delete(params object[] objs);
 
-        public void Delete(T t)
-        {
-            _repository.Delete(t);
-        }
+        public abstract void Delete(T t);
 
         public List<T> FindAll(bool isIncludes, bool isTracked, int page = 1, int maxByPage = int.MaxValue, string searchField = "")
         {
@@ -238,21 +232,12 @@ namespace WebApp.Service
 
         public abstract Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> OrderExpression();
 
-        public void Save(T t, params object[] objs)
-        {
-            _repository.Save(t, objs);
-        }
+        public abstract void Save(T t);
 
         public abstract Expression<Func<T, bool>> SearchExpression(string searchField = "");
 
-        public void Update(T t, params object[] objs)
-        {
-            _repository.Update(t, objs);
-        }
+        public abstract void Update(T t);
 
-        public void UpdateOne(T t, string propertyName, object newValue)
-        {
-            _repository.UpdateOne(t, propertyName, newValue);
-        }
+        public abstract void UpdateOne(T t, string propertyName, object newValue);
     }
 }

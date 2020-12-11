@@ -74,7 +74,7 @@ namespace WebApp.Controllers
             if (ModelState.IsValid && OwnerId.HasValue)
             {
                 finger.Owner = _PersonService.FindByIdExcludes(OwnerId);
-                _FingerService.Save(finger,finger.Owner);
+                _FingerService.Save(finger);
                 return RedirectToAction("Index");
             }
             ViewBag.OwnerId = new SelectList(_PersonService.GetAllExcludes(), "Id", "Name");
@@ -110,7 +110,7 @@ namespace WebApp.Controllers
             if (ModelState.IsValid && OwnerId.HasValue)
             {
                 finger.Owner = _PersonService.FindByIdExcludes(OwnerId);
-                _FingerService.Update(finger,finger.Owner);
+                _FingerService.Update(finger);
                 return RedirectToAction("Index");
             }
             ViewBag.OwnerId = new SelectList(_PersonService.GetAllExcludes(), "Id", "Name");

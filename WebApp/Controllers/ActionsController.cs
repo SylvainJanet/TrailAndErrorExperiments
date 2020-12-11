@@ -74,8 +74,8 @@ namespace WebApp.Controllers
             #region ClassManyToMany
             if (ModelState.IsValid && People != null)
             {
-                List<Person> owners = People != null ? _PersonService.FindManyByIdExcludes(People) : null;
-                _ActionService.Save(element, owners);
+                element.People = People != null ? _PersonService.FindManyByIdExcludes(People) : null;
+                _ActionService.Save(element);
                 return RedirectToAction("Index");
             }
             #endregion
@@ -109,8 +109,8 @@ namespace WebApp.Controllers
             #region ClassManyToMany
             if (ModelState.IsValid && People != null)
             {
-                List<Person> owners = _PersonService.FindManyByIdExcludes(People);
-                _ActionService.Update(element, owners);
+                element.People = _PersonService.FindManyByIdExcludes(People);
+                _ActionService.Update(element);
                 return RedirectToAction("Index");
             }
             #endregion
