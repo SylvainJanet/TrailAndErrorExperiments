@@ -398,6 +398,71 @@ namespace WebApp.Repositories
         }
 
         /// <summary>
+        /// Get a list of elements following condition <paramref name="predicateWhere"/>.
+        /// <br/>
+        /// Every other property will be excluded if and only if <paramref name="isIncludes"/> is <see langword="true"/>,
+        /// otherwise every other property will be included.
+        /// <br/>
+        /// Elements will be tracked if and only if <paramref name="isTracked"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="isIncludes">Will all other properties be included</param>
+        /// <param name="isTracked">Will the element be tracked</param>
+        /// <param name="predicateWhere">Condition/param>
+        /// <returns>The list of objects</returns>
+        public List<T> GetAllBy(bool isIncludes, bool isTracked, Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAll(isIncludes, isTracked, 0, int.MaxValue, null, predicateWhere);
+        }
+
+        /// <summary>
+        /// Get a list of elements following condition <paramref name="predicateWhere"/>.
+        /// <br/>
+        /// Every other property will be included, elements will not be tracked.
+        /// </summary>
+        /// <param name="predicateWhere">Condition</param>
+        /// <returns>The list of objects</returns>
+        public List<T> GetAllByIncludes(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(true, false, predicateWhere);
+        }
+
+        /// <summary>
+        /// Get a list of elements following condition <paramref name="predicateWhere"/>.
+        /// <br/>
+        /// Every other property will be included, elements will be tracked.
+        /// </summary>
+        /// <param name="predicateWhere">Condition</param>
+        /// <returns>The list of objects</returns>
+        public List<T> GetAllByIncludesTracked(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(true, true, predicateWhere);
+        }
+
+        /// <summary>
+        /// Get a list of elements following condition <paramref name="predicateWhere"/>.
+        /// <br/>
+        /// Every other property will be excluded, elements will not be tracked.
+        /// </summary>
+        /// <param name="predicateWhere">Condition</param>
+        /// <returns>The list of objects</returns>
+        public List<T> GetAllByExcludes(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(false, false, predicateWhere);
+        }
+
+        /// <summary>
+        /// Get a list of elements following condition <paramref name="predicateWhere"/>.
+        /// <br/>
+        /// Every other property will be excluded, elements will be tracked.
+        /// </summary>
+        /// <param name="predicateWhere">Condition</param>
+        /// <returns>The list of objects</returns>
+        public List<T> GetAllByExcludesTracked(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(false, true, predicateWhere);
+        }
+
+        /// <summary>
         /// Get a list of elements ordered by <paramref name="orderreq"/> following condition <paramref name="predicateWhere"/>
         /// starting at index <paramref name="start"/> with at most <paramref name="maxByPage"/> elements.
         /// <br/>

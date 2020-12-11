@@ -104,7 +104,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Models.Action element, int?[] People)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Models.Action element, object[] People)
         {
             #region ClassManyToMany
             if (ModelState.IsValid && People != null)

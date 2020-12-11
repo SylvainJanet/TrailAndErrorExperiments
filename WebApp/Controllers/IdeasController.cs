@@ -103,7 +103,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Idea idea, int?[] Owners)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Idea idea, object[] Owners)
         {
             if (ModelState.IsValid)
             {

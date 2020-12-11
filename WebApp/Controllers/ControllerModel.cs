@@ -75,6 +75,7 @@
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.ManyNotPropToOneMultiKey = new SelectList(_ManyNotPropToOneMultiKeyService.GetAllExcludes().Select(o => ManyNotPropToOneMultiKey.KeysToDisplayString(o)));
 //            #region ManyToManyMultiple 
 //            //ViewBag.ManyToManyMultiple1 = new MultiSelectList(_ClassManyToManyMultipleService.GetAllExcludes(), "Id", "Name", null);
 //            //viewBag.ManyToManyMultiple2 = ViewBag.ManyToManyMultiple1;
@@ -163,20 +164,28 @@
 //            //    return RedirectToAction("Index");
 //            //}
 //            #endregion
-//            //#region OneToManyNotProp
+//            #region OneToManyNotProp
 //            //if (ModelState.IsValid)
 //            //{
 //            //    OneToManyNotProp obj = OneToManyNotPropId != null ? _OneToManyNotPropService.FindByIdExcludes(OneToManyNotPropId) : null;
-//            //    _PersonService.Save(person, obj);
+//            //    _ClassService.Save(element, obj);
 //            //    return RedirectToAction("Index");
 //            //}
-//            //#endregion
+//            #endregion
+//            #region
+//            //if (ModelState.IsValid)
+//            //{
+//            //    ManyNotPropToOneMultiKey obj = ManyNotPropToOneMultiKey != null ? _ManyNotPropToOneMultiKeyService.FindByIdExcludes(ManyNotPropToOneMultiKey.DisplayStringToKeys(ManyNotPropToOneMultiKey)) : null;
+//            //    _ClassService.Save(element, obj);
+//            //}
+//            #endregion
 
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ClassOneToOneRequiredId = new SelectList(_ClassOneToOneRequired.GetAllExcludes(1, int.MaxValue, null, c => c.Class == null), "Id", "Name");
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.ManyNotPropToOneMultiKey = new SelectList(_ManyNotPropToOneMultiKeyService.GetAllExcludes().Select(o => ManyNotPropToOneMultiKey.KeysToDisplayString(o)));
 //            #region ManyToManyMultiple 
 //            //ViewBag.ManyToManyMultiple1 = new MultiSelectList(_ClassManyToManyMultipleService.GetAllExcludes(), "Id", "Name", null);
 //            //viewBag.ManyToManyMultiple2 = ViewBag.ManyToManyMultiple1;
@@ -202,6 +211,7 @@
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.ManyNotPropToOneMultiKey = new SelectList(_ManyNotPropToOneMultiKeyService.GetAllExcludes().Select(o => ManyNotPropToOneMultiKey.KeysToDisplayString(o)));
 //            //TempData["OneRequiredToOne"] = element.OneRequireToOne;
 //            //TempData["OneRequiredToMany"] = element.OneRequiredToMany;
 //            //TempData.Keep();
@@ -324,10 +334,19 @@
 //            //}
 //            #endregion
 
+//            #region
+//            //if (ModelState.IsValid)
+//            //{
+//            //    ManyNotPropToOneMultiKey obj = ManyNotPropToOneMultiKey != null ? _ManyNotPropToOneMultiKeyService.FindByIdExcludes(ManyNotPropToOneMultiKey.DisplayStringToKeys(ManyNotPropToOneMultiKey)) : null;
+//            //    _ClassService.Save(element, obj);
+//            //}
+//            #endregion
+
 //            //ViewBag.ClassManyToMany = new MultiSelectList(_ClassManyToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.ManyToOneRequiredOwnerId = new SelectList(_ClassManyToOneRequired.GetAllExcludes(), "Id", "Name");
 //            //ViewBag.OneNotRequiredToMany = new SelectList(_OneNotRequiredToManyService.GetAllExcludes(), "Id", "Name", null);
 //            //ViewBag.OneToManyNotPropId = new SelectList(_OneToManyNotPropService.GetAllExcludes(), "Id", "Name", null);
+//            //ViewBag.ManyNotPropToOneMultiKey = new SelectList(_ManyNotPropToOneMultiKeyService.GetAllExcludes().Select(o => ManyNotPropToOneMultiKey.KeysToDisplayString(o)));
 //            #region ClassOneRequiredToMany, ClassOneRequiredToOne
 //            //TempDate.Keep()
 //            #endregion

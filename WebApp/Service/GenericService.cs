@@ -155,6 +155,31 @@ namespace WebApp.Service
             return FindByManyId(true, true, objs);
         }
 
+        public List<T> GetAllBy(bool isIncludes, bool isTracked, Expression<Func<T, bool>> predicateWhere)
+        {
+            return _repository.GetAllBy(isIncludes, isTracked, predicateWhere);
+        }
+
+        public List<T> GetAllByExcludes(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(false, false, predicateWhere);
+        }
+
+        public List<T> GetAllByExcludesTracked(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(false, true, predicateWhere);
+        }
+
+        public List<T> GetAllByIncludes(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(true, false, predicateWhere);
+        }
+
+        public List<T> GetAllByIncludesTracked(Expression<Func<T, bool>> predicateWhere)
+        {
+            return GetAllBy(true, true, predicateWhere);
+        }
+
         public List<T> GetAll(bool isIncludes, bool isTracked, int page = 1, int maxByPage = int.MaxValue, Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> orderreq = null, Expression<Func<T, bool>> predicateWhere = null)
         {
             int start = (page - 1) * maxByPage;

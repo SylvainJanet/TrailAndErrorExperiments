@@ -203,9 +203,9 @@
     <Compile Include="Repositories\IColorRepository.cs" />
     <Compile Include="Repositories\IdeaRepository.cs" />
     <Compile Include="Repositories\IFingerRepository.cs" />
+    <Compile Include="Repositories\IGenericRepository.cs" />
     <Compile Include="Repositories\IIdeaRepository.cs" />
     <Compile Include="Repositories\IPersonRepository.cs" />
-    <Compile Include="Repositories\IGenericRepository.cs" />
     <Compile Include="Repositories\IThoughtRepository.cs" />
     <Compile Include="Repositories\IWorldVisionRepository.cs" />
     <Compile Include="Repositories\MyDbContext.cs" />

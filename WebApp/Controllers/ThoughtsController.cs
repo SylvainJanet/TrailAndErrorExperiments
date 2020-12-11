@@ -114,7 +114,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Thought element, int?[] PeopleComfy, int?[] PeopleSecret)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Thought element, object[] PeopleComfy, object[] PeopleSecret)
         {
             if (ModelState.IsValid)
             {

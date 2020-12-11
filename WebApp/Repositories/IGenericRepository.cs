@@ -23,6 +23,11 @@ namespace WebApp.Repositories
         T FindByIdIncludes(params object[] objs);
         T FindByIdIncludesTracked(params object[] objs);
         List<T> GetAll(bool isIncludes, bool isTracked, int start = 0, int maxByPage = int.MaxValue, Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> orderreq = null, Expression<Func<T, bool>> predicateWhere = null);
+        List<T> GetAllBy(bool isIncludes, bool isTracked, Expression<Func<T, bool>> predicateWhere);
+        List<T> GetAllByExcludes(Expression<Func<T, bool>> predicateWhere);
+        List<T> GetAllByExcludesTracked(Expression<Func<T, bool>> predicateWhere);
+        List<T> GetAllByIncludes(Expression<Func<T, bool>> predicateWhere);
+        List<T> GetAllByIncludesTracked(Expression<Func<T, bool>> predicateWhere);
         List<T> GetAllExcludes(int start = 0, int maxByPage = int.MaxValue, Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> orderreq = null, Expression<Func<T, bool>> predicateWhere = null);
         List<T> GetAllExcludesTracked(int start = 0, int maxByPage = int.MaxValue, Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> orderreq = null, Expression<Func<T, bool>> predicateWhere = null);
         List<T> GetAllIncludes(int start = 0, int maxByPage = int.MaxValue, Expression<Func<IQueryable<T>, IOrderedQueryable<T>>> orderreq = null, Expression<Func<T, bool>> predicateWhere = null);
