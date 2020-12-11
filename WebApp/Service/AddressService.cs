@@ -17,10 +17,12 @@ namespace WebApp.Service
 
         public override void Delete(params object[] objs)
         {
+            int? number = (int?)objs[0];
+            string street = (string)objs[1];
             using (MyDbContext db = new MyDbContext())
             {
                 IPersonService _PersonService = new PersonService(new PersonRepository(db));
-                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Address.Number == (int)objs[0] && p.Address.Street == (string)objs[1]))
+                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, p => p.Address.Number == number && p.Address.Street == street))
                 {
                     _PersonService.UpdateOne(person, "Address", null);
                 }

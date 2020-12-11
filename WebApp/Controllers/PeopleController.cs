@@ -102,7 +102,7 @@ namespace WebApp.Controllers
                 person.Vision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
                 person.ComfortableThoughts = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
                 person.SecretThoughts = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(FavoriteColorId) : null;
                 person.LeastLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
                 _PersonService.Save(person);
                 return RedirectToAction("Index");
@@ -163,7 +163,7 @@ namespace WebApp.Controllers
                 person.Fingers = TempData["Fingers"] as List<Finger>;
                 person.ComfortableThoughts = ThoughtsComfy != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsComfy) : null;
                 person.SecretThoughts = ThoughtsSecret != null ? _ThoughtService.FindManyByIdExcludes(ThoughtsSecret) : null;
-                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
+                person.FavoriteColor = FavoriteColorId != null ? _ColorService.FindByIdExcludes(FavoriteColorId) : null;
                 person.LeastLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
                 _PersonService.Update(person);
                 return RedirectToAction("Index");

@@ -147,7 +147,7 @@ namespace WebApp.Service
 
         public override void UpdateOne(Person t, string propertyName, object newValue)
         {
-            throw new NotImplementedException();
+            _repository.UpdateOne(t, propertyName, newValue);
         }
     }
 }
