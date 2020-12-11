@@ -92,12 +92,11 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
+        public ActionResult Create([Bind(Include = "Id,Name")] Person person, object[] Ideas, object[] Actions, int? WorldVisionId, object[] ThoughtsComfy, object[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
         {
             if (ModelState.IsValid)
             {
-                object[] Addresskeys = Address.DisplayStringToKeys(Addresskeysstring);
-                Address address = _AddressService.FindByIdExcludes(Addresskeys);
+                Address address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
@@ -122,7 +121,7 @@ namespace WebApp.Controllers
             ViewBag.ThoughtsSecret = ViewBag.ThoughtsComfy;
             ViewBag.FavoriteColorId = new SelectList(_ColorService.GetAllExcludes(), "Id", "Name", null);
             ViewBag.LeastLikedColorId = ViewBag.FavoriteColorId;
-            ViewBag.Addresskeysstring = new SelectList(_AddressService.GetAllExcludes().Select(a => Address.KeysToDisplayString(a)));
+            ViewBag.Addresskeysstring = new SelectList(_AddressService.GetAllExcludes().Select(a => EntityWithKeys.KeysToDisplayString(a)));
             return View(person);
         }
 
@@ -159,18 +158,17 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, int?[] Ideas, int?[] Actions, int? WorldVisionId, int?[] ThoughtsComfy, int?[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
+        public ActionResult Edit([Bind(Include = "Id,Name")] Person person, object[] Ideas, object[] Actions, int? WorldVisionId, object[] ThoughtsComfy, object[] ThoughtsSecret, int? FavoriteColorId, int? LeastLikedColorId, string Addresskeysstring)
         {
             if (ModelState.IsValid)
             {
-                object[] Addresskeys = Address.DisplayStringToKeys(Addresskeysstring);
-                Address address = _AddressService.FindByIdExcludes(Addresskeys);
+                Address address = Addresskeysstring != null ? _AddressService.FindByIdExcludes(Address.DisplayStringToKeys(Addresskeysstring)) : null;
                 List<Idea> ideas = Ideas != null ? _IdeaService.FindManyByIdExcludes(Ideas) : null;
                 List<Models.Action> actions = Actions != null ? _ActionService.FindManyByIdExcludes(Actions) : null;
                 WorldVision worldVision = WorldVisionId != null ? _WorldVisionService.FindByIdExcludes(WorldVisionId) : null;
                 Brain brain = TempData["Brain"] as Brain;
                 List<Finger> fingers = TempData["Fingers"] as List<Finger>;
-                foreach (Finger finger in _FingerService.GetAllExcludes(1, int.MaxValue, null, f => f.OwnerId == person.Id && fingers.Where(ff => ff.Id == f.Id).Count()==0))
+                foreach (Finger finger in _FingerService.GetAllExcludes(1, int.MaxValue, null, f => f.OwnerId == person.Id).Where(f => fingers.Where(ff => ff.Id == f.Id).Count() == 0))
                 {
                     _FingerService.Delete(finger);
                 }
@@ -189,7 +187,7 @@ namespace WebApp.Controllers
                 else
                     FavoriteColor = _ColorService.FindByIdExcludes(FavoriteColorId);
                 LessLikedColor = LeastLikedColorId != null ? _ColorService.FindByIdExcludes(LeastLikedColorId) : null;
-                _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2, FavoriteColor, LessLikedColor);
+                _PersonService.Update(person, ideas, brain, fingers, actions, worldVision, owners, owners2, FavoriteColor, LessLikedColor, address);
                 return RedirectToAction("Index");
             }
             ViewBag.Ideas = new MultiSelectList(_IdeaService.GetAllExcludes(), "Id", "Name", null);

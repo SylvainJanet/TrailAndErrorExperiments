@@ -69,7 +69,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Models.Action element, int?[] People)
+        public ActionResult Create([Bind(Include = "Id,Name")] Models.Action element, object[] People)
         {
             #region ClassManyToMany
             if (ModelState.IsValid && People != null)

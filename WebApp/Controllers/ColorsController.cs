@@ -16,7 +16,7 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class ColorsController : Controller
     {
-        private MyDbContext db = new MyDbContext();
+        private readonly MyDbContext db = new MyDbContext();
         #region Services
         private readonly IColorService _ColorService;
         private readonly IPersonService _PersonService;

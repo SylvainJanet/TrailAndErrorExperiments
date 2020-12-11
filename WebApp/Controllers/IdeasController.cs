@@ -68,7 +68,7 @@ namespace WebApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public ActionResult Create([Bind(Include = "Id,Name")] Idea idea, int?[] Owners)
+        public ActionResult Create([Bind(Include = "Id,Name")] Idea idea, object[] Owners)
         {
             if (ModelState.IsValid)
             {

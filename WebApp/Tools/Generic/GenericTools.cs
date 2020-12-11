@@ -544,13 +544,11 @@ namespace WebApp.Tools
             methodCheckIfObjectIsKey.Invoke(typeof(GenericTools), new object[] { objs });
             MethodInfo methodQueryWhereKeysAre = typeof(GenericTools).GetMethod("QueryWhereKeysAre", BindingFlags.Public | BindingFlags.Static)
                                                                      .MakeGenericMethod(new[] { typeofElement });
-            object query = Convert.ChangeType(
-                                              methodQueryWhereKeysAre.Invoke(typeof(GenericTools), new object[] { newContext.Set(typeofElement), objs }),
-                                              typeof(IQueryable<>).MakeGenericType(typeofElement)
-                                             );
-            MethodInfo methodSingleOrDefault = typeof(IQueryable<>).MakeGenericType(typeofElement).GetMethod("SingleOrDefault", BindingFlags.Public | BindingFlags.Static)
-                                                                                                  .MakeGenericMethod(new[] { typeofElement });
-            return methodSingleOrDefault.Invoke(typeof(IQueryable<>).MakeGenericType(typeofElement), new object[] { query });
+            object query = methodQueryWhereKeysAre.Invoke(typeof(GenericTools), new object[] { newContext.Set(typeofElement), objs });
+            MethodInfo methodSingleOrDefault = typeof(Queryable).GetMethods().Single(m => m.Name == "SingleOrDefault" &&
+                                                                                          m.GetParameters().Length == 1)
+                                                                .MakeGenericMethod(new[] { typeofElement });
+            return methodSingleOrDefault.Invoke(typeof(Queryable), new object[] { query });
         }
 
         /// <summary>
@@ -628,7 +626,7 @@ namespace WebApp.Tools
                     throw new IdListEmptyForClassException(typeof(T));
                 for (int i = 0; i < objs.Length; i++)
                 {
-                    if (!typeof(int?).IsAssignableFrom(objs[i].GetType()))
+                    if (!typeof(int?).IsAssignableFrom(objs[i].GetType()) && !typeof(int?).IsAssignableFrom(objs[i].GetType()) && !int.TryParse(objs[i].ToString(), out _))
                         throw new InvalidKeyForClassException(typeof(T));
                 }
             }
@@ -649,7 +647,15 @@ namespace WebApp.Tools
             int?[] ids = new int?[objs.Length];
             for (int i = 0; i < objs.Length; i++)
             {
-                ids[i] = (int?)objs[i];
+                try
+                {
+                    ids[i] = (int?)objs[i];
+                }
+                catch
+                {
+                    int.TryParse((string)objs[i], out int j);
+                    ids[i] = (int?)j;
+                }
             }
             return ids;
         }

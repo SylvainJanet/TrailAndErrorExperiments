@@ -16,9 +16,9 @@ namespace WebApp.Controllers
     [Route("{action=index}")]
     public class BrainsController : Controller
     {
-        private MyDbContext db = new MyDbContext();
-        private IBrainService _BrainService;
-        private IPersonService _PersonService;
+        private readonly MyDbContext db = new MyDbContext();
+        private readonly IBrainService _BrainService;
+        private readonly IPersonService _PersonService;
 
         public BrainsController()
         {
