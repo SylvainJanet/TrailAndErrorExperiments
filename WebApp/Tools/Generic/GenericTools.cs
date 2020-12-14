@@ -689,19 +689,15 @@ namespace WebApp.Tools
             return ids;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-        private static Expression<Func<TItem, bool>> PropertyKeysEquals<TItem>(PropertyInfo prop1, PropertyInfo prop2, object value)
+        /// <summary>
+        /// Build the expression tree for <c>o => (o.prop1.prop2 == value)</c> where o is of type <typeparamref name="TItem"/>.
+        /// </summary>
+        /// <typeparam name="TItem">The type of item at the root of the expression tree</typeparam>
+        /// <param name="prop1">The first property to access</param>
+        /// <param name="prop2">The second property to access</param>
+        /// <param name="value">The value</param>
+        /// <returns>The expression tree</returns>
+        private static Expression<Func<TItem, bool>> ExpressionPropPropEquals<TItem>(PropertyInfo prop1, PropertyInfo prop2, object value)
         {
             var param = Expression.Parameter(typeof(TItem));
             var exp = Expression.Property(param, prop1);
@@ -710,30 +706,58 @@ namespace WebApp.Tools
             return Expression.Lambda<Func<TItem, bool>>(body, param);
         }
 
-        private static Expression<Func<TItem, bool>> PropertyKeysNotNull<TItem>(PropertyInfo prop1)
+        /// <summary>
+        /// Build the expression tree for <c>o => o.prop != null</c> where o is of type <typeparamref name="TItem"/>.
+        /// </summary>
+        /// <typeparam name="TItem">The type of item at the root of the expression tree</typeparam>
+        /// <param name="prop">The property to access</param>
+        /// <returns>The expression tree</returns>
+        private static Expression<Func<TItem, bool>> PropertyKeysNotNull<TItem>(PropertyInfo prop)
         {
             var param = Expression.Parameter(typeof(TItem));
-            var exp = Expression.Property(param, prop1);
+            var exp = Expression.Property(param, prop);
             var body = Expression.IsFalse(Expression.Equal(exp, Expression.Constant(null)));
             return Expression.Lambda<Func<TItem, bool>>(body, param);
         }
 
-        private static List<Q> ListWherePropNotNull<T, Q>(List<Q> req, Type type, string propname)
+        /// <summary>
+        /// From a list <paramref name="lst"/> of elements of type <typeparamref name="T"/>, get all the elements for which
+        /// the property <paramref name="propname"/> is not <see langword="null"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements</typeparam>
+        /// <param name="lst">The input list</param>
+        /// <param name="propname">The name of the property</param>
+        /// <returns>The list restricted to elements for which the property <paramref name="propname"/> is not <see langword="null"/></returns>
+        private static List<T> ListWherePropNotNull<T>(List<T> lst, string propname)
         {
-            req = req.Where(
-                            PropertyKeysNotNull<Q>(typeof(Q).GetProperty(propname)).Compile()
+            lst = lst.Where(
+                            PropertyKeysNotNull<T>(typeof(T).GetProperty(propname)).Compile()
                             ).ToList();
-            return req;
+            return lst;
         }
 
-        private static List<Q> ListWherePropKeysAre<T, Q>(List<Q> req, Type type, string propname, object[] objs)
+        /// <summary>
+        /// From a list <paramref name="req"/> of elements of class <typeparamref name="Q"/> having a property of type <typeparamref name="T"/>
+        /// with name <paramref name="propname"/>, get the elements for which this property's Id or Keys are given.
+        /// <br/>
+        /// Essentially, does <c>req.Where(q => q.propname.Id == id)</c> or <c>req.Where(q => q.propname.Key1 == keyValue1 &amp;&amp; ... &amp;&amp; q.propname.Keyn == keyValuen)</c>
+        /// </summary>
+        /// <remarks>
+        /// Assumes q.propname is not <see langword="null"/> (otherwise q.propname.something would throw exception)</remarks>
+        /// <typeparam name="T">The type of the property</typeparam>
+        /// <typeparam name="Q">The type of the list's elements</typeparam>
+        /// <param name="req">The initial list</param>
+        /// <param name="propname">The property</param>
+        /// <param name="objs">Either the Id or the keys</param>
+        /// <returns>The list specified</returns>
+        private static List<Q> ListWherePropKeysAre<T, Q>(List<Q> req, string propname, object[] objs)
         {
             CheckIfObjectIsKey<T>(objs);
             if (typeof(T).IsSubclassOf(typeof(BaseEntity)))
             {
                 int? id = ObjectsToId<T>(objs);
                 req = req.Where(
-                               PropertyKeysEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty("Id"), id).Compile()
+                               ExpressionPropPropEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty("Id"), id).Compile()
                                ).ToList();
             }
             else
@@ -742,7 +766,7 @@ namespace WebApp.Tools
                 foreach (object obj in objs)
                 {
                     req = req.Where(
-                                    PropertyKeysEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty(KeyPropertiesNames<T>()[i]), obj).Compile()
+                                    ExpressionPropPropEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty(KeyPropertiesNames<T>()[i]), obj).Compile()
                                     ).ToList();
                     i++;
                 }
@@ -750,6 +774,15 @@ namespace WebApp.Tools
             return req;
         }
 
+        /// <summary>
+        /// Get an expression tree with principal root of type <typeparamref name="T"/>, checking whether or not
+        /// the element has either Id or keys equal to <paramref name="objs"/>.
+        /// <br/>
+        /// Essentially, does either <c>t => t.Id == id</c> or <c>t => t.key1 == key1value &amp;&amp; ... &amp;&amp; t.keyn = keynvalue</c>
+        /// </summary>
+        /// <typeparam name="T">The type in question</typeparam>
+        /// <param name="objs">Either the Id or the keys</param>
+        /// <returns>The expression tree</returns>
         private static Expression<Func<T,bool>> ExpressionWhereKeysAre<T>(params object[] objs)
         {
             var param = Expression.Parameter(typeof(T));
@@ -774,101 +807,220 @@ namespace WebApp.Tools
             return Expression.Lambda<Func<T, bool>>(body, param);
         }
 
+        /// <summary>
+        /// From a list <paramref name="req"/> of elements of type <typeparamref name="T"/>, 
+        /// return <see langword="true"/> if the list contains an element with either Id or keys <paramref name="objs"/>,
+        /// and return <see langword="false"/> otherwise.
+        /// </summary>
+        /// <typeparam name="T">The type of elements</typeparam>
+        /// <param name="req">The initial list</param>
+        /// <param name="objs">Either the Id or the keys.</param>
+        /// <returns>A boolean indicating whether or not the list <paramref name="req"/> contains an element
+        /// with either Id or keys <paramref name="objs"/></returns>
         private static bool ListWhereKeysAreCountSup1<T>(IList<T> req, params object[] objs)
         {
             Func<T, bool> func = ExpressionWhereKeysAre<T>(objs).Compile();
             return req.Where(func).Count() >= 1;
         }
 
+        /// <summary>
+        /// Get an expression tree having root of type <typeparamref name="Q"/>. These elements have a property <paramref name="prop"/>
+        /// which is a list of elements of type <typeparamref name="T"/>. 
+        /// <br/>
+        /// This returns essentially : <c>q => q.prop.Where(t => t.keysorId == objs).Count() >= 1</c>
+        /// <br/>
+        /// That is to say, for an element of type <typeparamref name="Q"/> so that their property <paramref name="prop"/> is
+        /// a <see cref="IList{T}"/>, whether or not it contains an element with either Id or Key given by <paramref name="objs"/>.
+        /// </summary>
+        /// <typeparam name="T">The most nested type</typeparam>
+        /// <typeparam name="Q">The type of the expression tree root</typeparam>
+        /// <param name="prop">The property of <typeparamref name="Q"/> in question</param>
+        /// <param name="objs">Either the Id or the Key</param>
+        /// <returns>The expression tree.</returns>
         private static Expression<Func<Q, bool>> ExpressionListWherePropListCountainsElementWithGivenKeys<T, Q>(PropertyInfo prop, params object[] objs)
         {
             var param = Expression.Parameter(typeof(Q));
+            // exp = q => q.prop
             var exp = Expression.Property(param, prop);
-            // t => t.propname
-            //var body = Expression.GetActionType;
+
             MethodInfo methodExpressionWhereKeysAre = typeof(GenericTools).GetMethod("ExpressionWhereKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
                                                                              .MakeGenericMethod(typeof(T));
-            //var body = Expression.Call(methodListWhereKeysAreCountSup1, exp, Expression.Constant(objs, typeof(object[])));
+            // exp2 = t => t.Id == id OR exp2 = t => t.key1 == key1value && ... && t.keyn == keynvalue
             Expression exp2 = (Expression)methodExpressionWhereKeysAre.Invoke(typeof(GenericTools), new object[] { objs });
 
             MethodInfo methodWhere = typeof(Enumerable).GetMethods().Where(m => m.Name == "Where").ToList()[0].MakeGenericMethod(typeof(T));
+            // body = q => q.prop.Where(exp2)
             Expression body = Expression.Call(methodWhere, exp, exp2);
 
             MethodInfo methodCount = typeof(Enumerable).GetMethods().Where(m => m.Name == "Count" && m.GetParameters().Length == 1).Single()
-                                                       .MakeGenericMethod(typeof(T)); //
+                                                       .MakeGenericMethod(typeof(T)); 
+            // body = q => q.prop.Where(exp2).Count()
             body = Expression.Call(methodCount, body);
 
+            // body = q => q.prop.Where(exp2).Count() >= 1
             body = Expression.GreaterThanOrEqual(body, Expression.Constant(1));
-            // t => t.propname.Where(...).Count()>=1
             return Expression.Lambda<Func<Q, bool>>(body, param);
         }
 
-        private static List<Q> ListWherePropListCountainsElementWithGivenKeys<T,Q>(List<Q> req, Type t, string propname, params object[] objs)
+        /// <summary>
+        /// From a list <paramref name="req"/> of elements <typeparamref name="Q"/>, get specific elements according to
+        /// the predicate <see cref="ExpressionListWherePropListCountainsElementWithGivenKeys{T, Q}(PropertyInfo, object[])"/>
+        /// applied to the property of <typeparamref name="Q"/> with name <paramref name="propname"/> and either the Id
+        /// or the keys given by <paramref name="objs"/>. 
+        /// <br/>
+        /// Ie the elements of type <typeparamref name="Q"/> have a property <paramref name="prop"/>
+        /// which is a list of elements of type <typeparamref name="T"/>. 
+        /// <br/>
+        /// This returns essentially : <c>req.Where(q => q.prop.Where(t => t.keysorId == objs).Count() >= 1)</c>
+        /// <br/>
+        /// That is to say the list of elements of type <typeparamref name="Q"/> so that their property <paramref name="prop"/> is
+        /// a <see cref="IList{T}"/> which contains an element with either Id or Key given by <paramref name="objs"/>.
+        /// </summary>
+        /// <remarks>Note that <paramref name="q"/> must be the same as <typeparamref name="Q"/>.</remarks>
+        /// <typeparam name="T">The type of the property</typeparam>
+        /// <typeparam name="Q">The type of the elements in the initial list <paramref name="req"/></typeparam>
+        /// <param name="req">The initial list</param>
+        /// <param name="q">The type of the elements in <paramref name="req"/></param>
+        /// <param name="propname">The name of the property of <typeparamref name="Q"/> which is of type <typeparamref name="T"/></param>
+        /// <param name="objs">Either the Id or keys</param>
+        /// <returns>The restricted list.</returns>
+        private static List<Q> ListWherePropListCountainsElementWithGivenKeys<T,Q>(List<Q> req, Type q, string propname, params object[] objs)
         {
-            Func<Q, bool> func = ExpressionListWherePropListCountainsElementWithGivenKeys<T,Q>(t.GetProperty(propname),objs).Compile();
+            Func<Q, bool> func = ExpressionListWherePropListCountainsElementWithGivenKeys<T,Q>(q.GetProperty(propname),objs).Compile();
             return req.Where(func).ToList();
             //req.Where( t => t.propname.Where(...).Count()>=1)
         }
 
-        private static Expression<Func<Q,bool>> ExpressionListRemoveElementWithGivenKeys<T,Q>(params object[] objs)
+        /// <summary>
+        /// Create an expression tree with principal root of type <typeparamref name="T"/> so that
+        /// one of the keys is different than the given <paramref name="objs"/>
+        /// <br/>
+        /// Essentially gives <c>t => t.key1 != key1value || ... || t.keyn != keynvalue</c>
+        /// </summary>
+        /// <remarks>It is assumed that <paramref name="objs"/> are keys and not an Id. See <see cref="ExpressionListRemoveElementWithGivenId{T}(int?)"/>
+        /// to see the other case.</remarks>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <param name="objs">Either the Id or the Keys</param>
+        /// <returns>The expression tree</returns>
+        private static Expression<Func<T,bool>> ExpressionListRemoveElementWithGivenKeys<T>(params object[] objs)
         {
-            var param = Expression.Parameter(typeof(Q));
-            Expression body = Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty(KeyPropertiesNames<Q>()[0])),
-                                                              Expression.Constant(objs[0], typeof(Q).GetProperty(KeyPropertiesNames<Q>()[0]).PropertyType)));
+            var param = Expression.Parameter(typeof(T));
+            Expression body = Expression.IsFalse(Expression.Equal(Expression.Property(param, typeof(T).GetProperty(KeyPropertiesNames<T>()[0])),
+                                                                  Expression.Constant(objs[0], typeof(T).GetProperty(KeyPropertiesNames<T>()[0]).PropertyType)));
             for (int i = 1; i < objs.Length; i++)
             {
                 body = Expression.Or(body,
-                                    Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty(KeyPropertiesNames<Q>()[i])),
-                                                                    Expression.Constant(objs[i], typeof(Q).GetProperty(KeyPropertiesNames<Q>()[i]).PropertyType))));
+                                    Expression.IsFalse(Expression.Equal(Expression.Property(param, typeof(T).GetProperty(KeyPropertiesNames<T>()[i])),
+                                                                    Expression.Constant(objs[i], typeof(T).GetProperty(KeyPropertiesNames<T>()[i]).PropertyType))));
             }
             // t => t.key1 != value1 || t.key2 != value2 ...
-            return Expression.Lambda<Func<Q, bool>>(body, param);
+            return Expression.Lambda<Func<T, bool>>(body, param);
         }
 
-        private static Expression<Func<Q,bool>> ExpressionListRemoveElementWithGivenId<T,Q>(int? id)
+        /// <summary>
+        /// Create an expression tree with principal root of type <typeparamref name="T"/> so that the
+        /// Id is different from the given <paramref name="id"/> 
+        /// <br/>
+        /// Essentially gives <c>t => t.Id != id</c>
+        /// </summary>
+        /// <remarks>It is assumed that the Id is given, not keys. See <see cref="ExpressionListRemoveElementWithGivenKeys{T}(object[])"/>
+        /// to see the other case.</remarks>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <param name="objs">Either the Id or the Keys</param>
+        /// <returns>The expression tree</returns>
+        private static Expression<Func<T,bool>> ExpressionListRemoveElementWithGivenId<T>(int? id)
         {
-            var param = Expression.Parameter(typeof(Q));
-            var body = Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty("Id")),
-                                                       Expression.Constant(id, typeof(int?))));
-            return Expression.Lambda<Func<Q, bool>>(body, param);
+            var param = Expression.Parameter(typeof(T));
+            var body = Expression.IsFalse(Expression.Equal(Expression.Property(param, typeof(T).GetProperty("Id")),
+                                                           Expression.Constant(id, typeof(int?))));
+            return Expression.Lambda<Func<T, bool>>(body, param);
         }
 
-        private static List<Q> ListRemoveElementWithGivenKeys<T,Q>(List<Q> req, params object[] objs)
+        /// <summary>
+        /// From a list of elements of type <typeparamref name="T"/> and either a given Id or given keys
+        /// <paramref name="objs"/>, get all the elements that does not either have the Id or one of the given keys.
+        /// <br/>
+        /// Essentially, do <c>req => req.Where(t => t.Id != id)</c> or
+        /// <c>req => req.Where(t => t.key1 != key1value || ... || t.keyn != keynvalue</c>
+        /// </summary>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <param name="req">The initial list</param>
+        /// <param name="objs">Either the Id or the keys</param>
+        /// <returns>The restricted list</returns>
+        private static List<T> ListRemoveElementWithGivenKeys<T>(List<T> req, params object[] objs)
         {
             CheckIfObjectIsKey<T>(objs);
-            Func<Q, bool> func;
+            Func<T, bool> func;
             if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
             {
                 int id = (int)objs[0];
-               func = ExpressionListRemoveElementWithGivenId<T,Q>(id).Compile();
+               func = ExpressionListRemoveElementWithGivenId<T>(id).Compile();
             }
             else
             {
-                func = ExpressionListRemoveElementWithGivenKeys<T,Q>(objs).Compile();
+                func = ExpressionListRemoveElementWithGivenKeys<T>(objs).Compile();
             }
             return req.Where(func).ToList();
         }
 
+        /// <summary>
+        /// Return <see langword="true"/> if and only if <paramref name="t1"/> has a property of type either <paramref name="t2"/>
+        /// or <see cref="IList"/>&lt;<paramref name="t2"/>&gt;. That is to say that <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and that <paramref name="t1"/> has a property concerning this relationship.
+        /// </summary>
+        /// <param name="t1">The type for which properties have to be invistigated</param>
+        /// <param name="t2">The type to check whether or not is is in a relationship with <paramref name="t1"/>
+        /// for which <paramref name="t1"/> has a property.</param>
+        /// <returns><see langword="true"/> if <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and <paramref name="t1"/> has a property concerning this relationship. <see langword="false"/>
+        /// otherwise</returns>
         private static bool HasPropertyRelation(Type t1, Type t2)
         {
             return HasPropertyRelationNotList(t1, t2) || HasPropertyRelationList(t1, t2);
         }
 
+        /// <summary>
+        /// Return <see langword="true"/> if and only if <paramref name="t1"/> has a property of type <paramref name="t2"/>
+        /// That is to say that <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and that <paramref name="t1"/> has a property concerning this relationship of type <paramref name="t2"/>
+        /// </summary>
+        /// <param name="t1">The type for which properties have to be invistigated</param>
+        /// <param name="t2">The type to check whether or not is is in a relationship with <paramref name="t1"/>
+        /// for which <paramref name="t1"/> has a property of type <paramref name="t2"/>.</param>
+        /// <returns><see langword="true"/> if <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and <paramref name="t1"/> has a property concerning this relationship of type <paramref name="t2"/>. 
+        /// <see langword="false"/> otherwise</returns>
         private static bool HasPropertyRelationNotList(Type t1, Type t2)
         {
             return DynamicDBTypesForType(t1).Values.Contains(t2);
         }
 
+        /// <summary>
+        /// Return <see langword="true"/> if and only if <paramref name="t1"/> has a property of type <see cref="IList"/>&lt;<paramref name="t2"/>&gt;
+        /// That is to say that <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and that <paramref name="t1"/> has a property concerning this relationship of type 
+        /// <see cref="IList"/>&lt;<paramref name="t2"/>&gt;
+        /// </summary>
+        /// <param name="t1">The type for which properties have to be invistigated</param>
+        /// <param name="t2">The type to check whether or not is is in a relationship with <paramref name="t1"/>
+        /// for which <paramref name="t1"/> has a property of type <see cref="IList"/>&lt;<paramref name="t2"/>&gt;.</param>
+        /// <returns><see langword="true"/> if <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and <paramref name="t1"/> has a property concerning this relationship of type 
+        /// <see cref="IList"/>&lt;<paramref name="t2"/>&gt;. <see langword="false"/> otherwise</returns>
         private static bool HasPropertyRelationList(Type t1, Type t2)
         {
             return DynamicDBListTypesForType(t1).Values.Contains(t2);
         }
 
-        private static IEnumerable<string> GetPropsNames(Type t1, Type t2)
-        {
-            return t1.GetProperties().Where(prop => prop.PropertyType == t2).Select(prop => prop.Name);
-        }
-
+        /// <summary>
+        /// Returns whether or not the type <paramref name="t1"/> has a property representing a relationship
+        /// with <paramref name="t2"/>, that is to say of type <paramref name="t2"/> or <see cref="IList"/>&lt;<paramref name="t2"/>&gt;
+        /// which has the annotation <see cref="RequiredAttribute"/>.
+        /// </summary>
+        /// <param name="t1">The type for which properties have to be invistigated</param>
+        /// <param name="t2">The type to check whether or not is is in a relationship with <paramref name="t1"/>
+        /// for which <paramref name="t1"/> has a property with the annotation <see cref="RequiredAttribute"/>.</param>
+        /// <returns></returns>
         private static bool HasPropertyRelationRequired(Type t1, Type t2)
         {
             if (HasPropertyRelationNotList(t1, t2))
@@ -884,6 +1036,20 @@ namespace WebApp.Tools
             return false;
         }
 
+        /// <summary>
+        /// Get all types t that are in relation with <typeparamref name="T"/> so that :
+        /// <list type="bullet">
+        /// <item>
+        /// t has a property representing that relationship, that is to say either of type <typeparamref name="T"/> or <see cref="IList{T}"/>
+        /// </item>
+        /// <item>
+        /// <typeparamref name="T"/> has no property representing that relationship.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <returns>The list of types in relationship with <typeparamref name="T"/> that have a property for the relation and
+        /// <typeparamref name="T"/> has no such property.</returns>
         private static IEnumerable<Type> GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>()
         {
             List<Type> res = new List<Type>();
@@ -899,6 +1065,20 @@ namespace WebApp.Tools
             return res;
         }
 
+        /// <summary>
+        /// Get all types t that are in relation with <typeparamref name="T"/> so that :
+        /// <list type="bullet">
+        /// <item>
+        /// t has a property representing that relationship, that is to say either of type <typeparamref name="T"/> or <see cref="IList{T}"/>
+        /// </item>
+        /// <item>
+        /// that property is has the annotation <see cref="RequiredAttribute"/>
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <returns>The list of types in relationship with <typeparamref name="T"/> that have a property for the relation 
+        /// with the annotation <see cref="RequiredAttribute"/></returns>
         private static IEnumerable<Type> GetTypesInRelationWithTHavingRequiredTProperty<T>()
         {
             List<Type> res = new List<Type>();
@@ -911,10 +1091,19 @@ namespace WebApp.Tools
                     res.Add(type);
             }
             return res;
-            // person -> finger
-            // person -> action
         }
 
+        /// <summary>
+        /// Return <see langword="true"/> if and only if <paramref name="t1"/> has many property of type either <paramref name="t2"/>
+        /// or <see cref="IList"/>&lt;<paramref name="t2"/>&gt;. That is to say that <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and that <paramref name="t1"/> has more than one property concerning this relationship.
+        /// </summary>
+        /// <param name="t1">The type for which properties have to be invistigated</param>
+        /// <param name="t2">The type to check whether or not is is in a relationship with <paramref name="t1"/>
+        /// for which <paramref name="t1"/> has more than one property.</param>
+        /// <returns><see langword="true"/> if <paramref name="t1"/> and <paramref name="t2"/> are in
+        /// a relationship and <paramref name="t1"/> has more than one property concerning this relationship. <see langword="false"/>
+        /// otherwise</returns>
         private static bool HasManyProperties(Type t1, Type t2)
         {
             int countNotList = DynamicDBTypesForType(t1).Values.Where(t => t == t2).Count();
@@ -922,6 +1111,12 @@ namespace WebApp.Tools
             return countNotList + countList > 1;
         }
 
+        /// <summary>
+        /// Get the list of types t that are many relationships with <typeparamref name="T"/>, that is to say that
+        /// <typeparamref name="T"/> has many properties of types either t or <see cref="IList"/>&lt;t&gt;.
+        /// </summary>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <returns>The list of types</returns>
         private static IEnumerable<Type> GetTypesForWhichTHasManyProperties<T>()
         {
             List<Type> res = new List<Type>();
@@ -931,11 +1126,14 @@ namespace WebApp.Tools
                     res.Add(type);
             }
             return res;
-            // person -> color
-            // person -> thoughts
-            // thoughts -> person
         }
 
+        /// <summary>
+        /// Get the list of types t that are in exactly one relationship with <typeparamref name="T"/>, that is to say that
+        /// <typeparamref name="T"/> has exactly one property of types either t or <see cref="IList"/>&lt;t&gt;.
+        /// </summary>
+        /// <typeparam name="T">The type invistigated</typeparam>
+        /// <returns>The list of types</returns>
         private static IEnumerable<Type> GetTypesForWhichTHasOneProperty<T>()
         {
             List<Type> res = new List<Type>();
@@ -947,6 +1145,23 @@ namespace WebApp.Tools
             return res;
         }
 
+        /// <summary>
+        /// Get an instance of the service of type <paramref name="t"/> using <paramref name="context"/>.
+        /// </summary>
+        /// <remarks>
+        /// There are some restrictions on the names of the classes, the repositories and the services : 
+        /// <list type="bullet">
+        /// <item>
+        /// For a class t with name "TName", the corresponding repository must be named "TNameRepository"
+        /// </item>
+        /// <item>
+        /// For a class t with name "TName", the corresponding service must be named "TNameService"
+        /// </item>
+        /// </list>
+        /// </remarks>
+        /// <param name="context">The context</param>
+        /// <param name="t">The type for which the service has to be instanciated</param>
+        /// <returns>A new instance of the service of <paramref name="t"/></returns>
         private static dynamic GetServiceFromContext(MyDbContext context, Type t)
         {
             Type typetRepository = Assembly.GetAssembly(t).GetTypes().Single(typ => typ.Name == t.Name + "Repository");
@@ -956,36 +1171,93 @@ namespace WebApp.Tools
             return tService;
         }
 
-        private static void SetForTypePropertyWithGivenKeysToNullInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        /// <summary>
+        /// For the type <paramref name="q"/>, using a new context <paramref name="context"/>, update the elements in case
+        /// the element of type <typeparamref name="T"/> having either Id or keys <paramref name="objs"/> has to be deleted. That is
+        /// to say, for elements of type <paramref name="q"/> such that their property <paramref name="propname"/> of type <typeparamref name="T"/>
+        /// is not <see langword="null"/>,
+        /// <list type="bullet">
+        /// <item>
+        /// If the property doesn't have an annotation <see cref="RequiredAttribute"/>, just set it to <see langword="null"/>. 
+        /// (EF won't do it by itself using TRepository since <typeparamref name="T"/> has no property for that relationship)
+        /// </item>
+        /// <item>
+        /// If the property has an annotation <see cref="RequiredAttribute"/>, delete the item (EF won't do it by itself for
+        /// the same reason)
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>It is assumed that the property of <paramref name="q"/> with name <paramref name="propname"/> is of
+        /// type <typeparamref name="T"/> (and NOT <see cref="IList{T}"/>) and that <typeparamref name="T"/> has no
+        /// property representing that relationship. In other words it is assumed that <paramref name="q"/> is part
+        /// of <see cref="GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty{T}"/></remarks>
+        /// <typeparam name="T">The type of the element deleted with either Id or keys <paramref name="objs"/> for which actions 
+        /// have to be taken</typeparam>
+        /// <param name="context">The context in which to do this operation</param>
+        /// <param name="q">The type of the elements to be updated before the deletion of the element of type <typeparamref name="T"/> with 
+        /// either Id or keys <paramref name="objs"/></param>
+        /// <param name="propname">The name of the property of <paramref name="q"/> having type <typeparamref name="T"/></param>
+        /// <param name="objs">Either the Id or keys of the element of type <typeparamref name="T"/> deleted</param>
+        private static void SetForTypePropertyWithGivenKeysToNullInNewContext<T>(MyDbContext context, Type q, string propname, params object[] objs)
         {
-            dynamic tService = GetServiceFromContext(context, t);
+            dynamic tService = GetServiceFromContext(context, q);
 
             MethodInfo methodListWherePropNotNull = typeof(GenericTools).GetMethod("ListWherePropNotNull", BindingFlags.NonPublic | BindingFlags.Static)
-                                                                                    .MakeGenericMethod(new Type[] { typeof(T), t });
-            dynamic req = methodListWherePropNotNull.Invoke(typeof(GenericTools), new object[] { tService.GetAllIncludes(1, int.MaxValue, null, null), t, propname });
+                                                                                    .MakeGenericMethod(new Type[] { q });
+            dynamic req = methodListWherePropNotNull.Invoke(typeof(GenericTools), new object[] { tService.GetAllIncludes(1, int.MaxValue, null, null), propname });
 
             MethodInfo methodQueryWherePropKeysAre = typeof(GenericTools).GetMethod("ListWherePropKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
-                                                                         .MakeGenericMethod(new Type[] { typeof(T), t });
-            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+                                                                         .MakeGenericMethod(new Type[] { typeof(T), q });
+            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, propname, objs });
             foreach (var tItem in req)
             {
-                if (t.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) == null)
+                if (q.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) == null)
                     tService.UpdateOne(tItem, propname, null);
                 else
                     tService.Delete(tItem);
             }
         }
 
-        private static object[] ConcatArrays(object[] A1, object[] A2)
+        /// <summary>
+        /// Get a new array with elements :
+        /// <list type="bullet">
+        /// <item>
+        /// the elements of <paramref name="objs"/>
+        /// </item>
+        /// <item>
+        /// the array <paramref name="paramsobjects"/>
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>Used to a dynamic call to a generic function having arguments 
+        /// (obj arg1, ... obj argn, params object[] paramsobject). 
+        /// <br/>
+        /// <paramref name="objs"/> will contain {arg1, ... , argn}
+        /// <br/>
+        /// The dynamic call will use <see cref="ConcatArrayWithParams"/> with arguments (<paramref name="objs"/>,<paramref name="paramsobjects"/>)</remarks>
+        /// <param name="objs">The objects</param>
+        /// <param name="paramsobjects">The array of objects used in params argument.</param>
+        /// <returns>The array.</returns>
+        private static object[] ConcatArrayWithParams(object[] objs, object[] paramsobjects)
         {
-            object[] res = new object[A1.Length + 1];
-            for (int i = 0; i < A1.Length; i++)
+            object[] res = new object[objs.Length + 1];
+            for (int i = 0; i < objs.Length; i++)
             {
-                res[i] = A1[i];
+                res[i] = objs[i];
             }
-            res[A1.Length] = A2;
+            res[objs.Length] = paramsobjects;
             return res;
         }
+
+
+
+
+
+
+
+
+
+
 
         private static void RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
         {
@@ -993,13 +1265,9 @@ namespace WebApp.Tools
 
             MethodInfo methodExpressionListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ExpressionListWherePropListCountainsElementWithGivenKeys")
                                                                                                             .MakeGenericMethod(new Type[] { typeof(T), t });
-            dynamic func = methodExpressionListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), ConcatArrays(new object[] { t.GetProperty(propname) }, objs));
+            dynamic func = methodExpressionListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), ConcatArrayWithParams(new object[] { t.GetProperty(propname) }, objs));
 
             dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, func);
-
-            //MethodInfo methodListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ListWherePropListCountainsElementWithGivenKeys", BindingFlags.Public | BindingFlags.Static)
-            //                                                                                      .MakeGenericMethod(new Type[] { typeof(T), t });
-            //req = methodListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
 
             //get elements for which the property includes the element gith given keys
             //req = tService.GetAllIncludes(1, int.MaxValue, null, null).Where(t => t.propname.Where(...).Count()>=1)
@@ -1019,71 +1287,159 @@ namespace WebApp.Tools
                     tService.UpdateOne(tItem, propname, newValue);
                 }
             }
-
-            //foreach (var tItem in req)
-            //{
-            //    // remove from the property of these items the element with given keys
-            //    tItem.propname.Where(...);
-            //    tService.UpdateOne(tItem, propname, tItem.propname);
-            //    if (required and tItem.propname.count()=0)
-            //    tService.Delete(tItem);
-            //}
         }
 
-        private static void DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>(Type t, params object[] objs)
+
+
+
+
+
+
+
+
+
+
+        /// <summary>
+        /// An object of type <typeparamref name="T"/> with either Id or keys <paramref name="objs"/> is deleted.
+        /// Every type <paramref name="q"/> in <see cref="GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty{T}"/> has to be updated
+        /// manually. Indeed, <typeparamref name="T"/> has no property representing that relation, and thus no element of 
+        /// type <paramref name="q"/> will be loaded in the context and changed, wich will result in exceptions if not
+        /// taken care of. This is such treatment.
+        /// <br/>
+        /// If the property representing that relation in type <paramref name="q"/> is of type <typeparamref name="T"/>,
+        /// this will set, for the appropriate elements of type <paramref name="q"/>, either the property to <see langword="null"/>,
+        /// or if it has annotation <see cref="RequiredAttribute"/> it will delete it.
+        /// <br/>
+        /// if the property representing that relation in type <paramref name="q"/> is of type <see cref="IList{T}"/>,
+        /// this will set, for the appropriate elements of type <paramref name="q"/>, the property to the list without the element
+        /// with either Id or keys <paramref name="objs"/>. Furthermore, if such property has annotation <see cref="RequiredAttribute"/>,
+        /// and the item of type <typeparamref name="T"/> to delete was the only remaining element of the list, it will delete
+        /// the element of type <paramref name="q"/> in question.
+        /// </summary>
+        /// <typeparam name="T">The type of the element we wish to delete</typeparam>
+        /// <param name="q">The type to update</param>
+        /// <param name="objs">Either the Id or the Keys of the item we wish to delete</param>
+        private static void DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>(Type q, params object[] objs)
         {
-            // OK address -> person
-            // OK color -> person
-            // OK worldvision -> person
-            if (HasPropertyRelationNotList(t, typeof(T)))
+            if (HasPropertyRelationNotList(q, typeof(T)))
             {
-                List<string> propnames = DynamicDBTypesForType(t).Where(kv => kv.Value == typeof(T))
+                List<string> propnames = DynamicDBTypesForType(q).Where(kv => kv.Value == typeof(T))
                                                                               .Select(kv => kv.Key)
                                                                               .ToList();
                 using (MyDbContext context = new MyDbContext())
                 {
                     foreach (string propname in propnames)
                     {
-                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, t, propname, objs);
+                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, q, propname, objs);
                     }
                 }
             }
             else
             {
-                if (HasPropertyRelationList(t, typeof(T)))
+                if (HasPropertyRelationList(q, typeof(T)))
                 {
-                    List<string> propnames = DynamicDBListTypesForType(t).Where(kv => kv.Value == typeof(T))
+                    List<string> propnames = DynamicDBListTypesForType(q).Where(kv => kv.Value == typeof(T))
                                                                                       .Select(kv => kv.Key)
                                                                                       .ToList();
                     using (MyDbContext context = new MyDbContext())
                     {
                         foreach (string propname in propnames)
                         {
-                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, t, propname, objs);
+                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, q, propname, objs);
                         }
                     }
                 }
                 else
                 {
-                    throw new HasNoPropertyRelationException(t, typeof(T));
+                    throw new HasNoPropertyRelationException(q, typeof(T));
                 }
             }
         }
 
-        private static void DeleteItemOfTypeWithRequiredPropertyHavingGivenKeysInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        /// <summary>
+        /// For the type <paramref name="q"/>, using a new context <paramref name="context"/>, update the elements in case
+        /// the element of type <typeparamref name="T"/> having either Id or keys <paramref name="objs"/> has to be deleted
+        /// and the property of <paramref name="q"/> of type either <typeparamref name="T"/> or <see cref="IList{T}"/> has
+        /// the annotation <see cref="RequiredAttribute"/>.
+        /// <br/>
+        /// Indeed, required properties are not handled well in EF in case of relationships, especially if they are
+        /// of type <see cref="IList{T}"/> (an empty <see cref="List"/> is not <see langword="null"/> and the annotation
+        /// <see cref="RequiredAttribute"/> is interpreted as nullable = <see langword="false"/> and empty list are 
+        /// thusly accepted)
+        /// <br/> That is to say, for elements of type <paramref name="q"/>, if the property has an annotation 
+        /// <see cref="RequiredAttribute"/>, and :
+        /// <list type="bullet">
+        /// <item>
+        /// it is of type <typeparamref name="T"/>, delete the item
+        /// </item>
+        /// <item>
+        /// it is of type <see cref="IList{T}"/>, remove the item from the list and delete the element if it were
+        /// the only element remaining in the property.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>It is assumed that the property of <paramref name="q"/> with name <paramref name="propname"/> is of
+        /// type <typeparamref name="T"/> (and NOT <see cref="IList{T}"/>, 
+        /// see <see cref="DeleteOrUpdateItemOfTypeWithRequiredListPropertyHavingGivenKeysInNewContext"/> for that case) 
+        /// and that <typeparamref name="T"/> has no property representing that relationship. In other words it is assumed 
+        /// that <paramref name="q"/> is part of <see cref="GetTypesInRelationWithTHavingRequiredTProperty{T}"/> with a property
+        /// of type <typeparamref name="T"/>.</remarks>
+        /// <typeparam name="T">The type of the element deleted with either Id or keys <paramref name="objs"/> for which actions 
+        /// have to be taken</typeparam>
+        /// <param name="context">The context in which to do this operation</param>
+        /// <param name="q">The type of the elements to be updated before the deletion of the element of type <typeparamref name="T"/> with 
+        /// either Id or keys <paramref name="objs"/></param>
+        /// <param name="propname">The name of the property of <paramref name="q"/> having type <typeparamref name="T"/></param>
+        /// <param name="objs">Either the Id or keys of the element of type <typeparamref name="T"/> deleted</param>
+        private static void DeleteItemOfTypeWithRequiredPropertyHavingGivenKeysInNewContext<T>(MyDbContext context, Type q, string propname, params object[] objs)
         {
-            dynamic tService = GetServiceFromContext(context, t);
+            dynamic tService = GetServiceFromContext(context, q);
 
             dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, null);
             MethodInfo methodQueryWherePropKeysAre = typeof(GenericTools).GetMethod("ListWherePropKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
-                                                                         .MakeGenericMethod(new Type[] { typeof(T), t });
-            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+                                                                         .MakeGenericMethod(new Type[] { typeof(T), q });
+            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, propname, objs });
             foreach (var tItem in req)
             {
                 tService.Delete(tItem);
             }
         }
 
+        /// <summary>
+        /// For the type <paramref name="q"/>, using a new context <paramref name="context"/>, update the elements in case
+        /// the element of type <typeparamref name="T"/> having either Id or keys <paramref name="objs"/> has to be deleted
+        /// and the property of <paramref name="q"/> of type either <typeparamref name="T"/> or <see cref="IList{T}"/> has
+        /// the annotation <see cref="RequiredAttribute"/>.
+        /// <br/>
+        /// Indeed, required properties are not handled well in EF in case of relationships, especially if they are
+        /// of type <see cref="IList{T}"/> (an empty <see cref="List"/> is not <see langword="null"/> and the annotation
+        /// <see cref="RequiredAttribute"/> is interpreted as nullable = <see langword="false"/> and empty list are 
+        /// thusly accepted)
+        /// <br/> That is to say, for elements of type <paramref name="q"/>, if the property has an annotation 
+        /// <see cref="RequiredAttribute"/>, and :
+        /// <list type="bullet">
+        /// <item>
+        /// it is of type <typeparamref name="T"/>, delete the item
+        /// </item>
+        /// <item>
+        /// it is of type <see cref="IList{T}"/>, remove the item from the list and delete the element if it were
+        /// the only element remaining in the property.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>It is assumed that the property of <paramref name="q"/> with name <paramref name="propname"/> is of
+        /// type <see cref="IList{T}"/> (and NOT <typeparamref name="T"/>, 
+        /// see <see cref="DeleteItemOfTypeWithRequiredPropertyHavingGivenKeysInNewContext"/> for that case) 
+        /// and that <typeparamref name="T"/> has no property representing that relationship. In other words it is assumed 
+        /// that <paramref name="q"/> is part of <see cref="GetTypesInRelationWithTHavingRequiredTProperty{T}"/> with a property
+        /// of type <typeparamref name="T"/>.</remarks>
+        /// <typeparam name="T">The type of the element deleted with either Id or keys <paramref name="objs"/> for which actions 
+        /// have to be taken</typeparam>
+        /// <param name="context">The context in which to do this operation</param>
+        /// <param name="q">The type of the elements to be updated before the deletion of the element of type <typeparamref name="T"/> with 
+        /// either Id or keys <paramref name="objs"/></param>
+        /// <param name="propname">The name of the property of <paramref name="q"/> having type <typeparamref name="T"/></param>
+        /// <param name="objs">Either the Id or keys of the element of type <typeparamref name="T"/> deleted</param>
         private static void DeleteOrUpdateItemOfTypeWithRequiredListPropertyHavingGivenKeysInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
         {
             dynamic tService = GetServiceFromContext(context, t);
@@ -1093,9 +1449,6 @@ namespace WebApp.Tools
             MethodInfo methodListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ListWherePropListCountainsElementWithGivenKeys", BindingFlags.NonPublic | BindingFlags.Static)
                                                                                                   .MakeGenericMethod(new Type[] { typeof(T), t });
             req = methodListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
-
-            // get elements for which the element with given keys is t
-            //req = tService.GetAllIncludes(1, int.MaxValue, null, null).Where(t => t.propname.Where(...).Count()>=1)
 
             foreach (var tItem in req)
             {
@@ -1107,22 +1460,33 @@ namespace WebApp.Tools
                 else
                 {
                     MethodInfo methodListRemoveElementWithGivenKeys = typeof(GenericTools).GetMethod("ListRemoveElementWithGivenKeys", BindingFlags.NonPublic | BindingFlags.Static)
-                                                                                          .MakeGenericMethod(new Type[] { typeof(T), t });
+                                                                                          .MakeGenericMethod(new Type[] { typeof(T) });
                     var newValue = methodListRemoveElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { oldValue, objs });
                     tService.UpdateOne(tItem, propname, newValue);
                 }
             }
-
-            //foreach (var tItem in req)
-            //{
-            //    if tItem.propname.Count() == 1
-            //    tService.Delete(tItem)
-            //    else
-            //    tItem.propname.Where(...);
-            //}
-
         }
 
+        /// <summary>
+        /// An object of type <typeparamref name="T"/> with either Id or keys <paramref name="objs"/> is deleted.
+        /// Every type <paramref name="q"/> in <see cref="GetTypesInRelationWithTHavingRequiredTProperty"/> has to be updated
+        /// manually. Indeed, required properties are not handled well in EF in case of relationships, especially if they are
+        /// of type <see cref="IList"/> (an empty <see cref="List"/> is not <see langword="null"/> and the annotation
+        /// <see cref="RequiredAttribute"/> is interpreted as nullable = <see langword="false"/>)
+        /// <br/>
+        /// If the property representing that relation in type <paramref name="q"/> is of type <typeparamref name="T"/>,
+        /// this will set, for the appropriate elements of type <paramref name="q"/>, either the property to <see langword="null"/>,
+        /// or if it has annotation <see cref="RequiredAttribute"/> it will delete it.
+        /// <br/>
+        /// if the property representing that relation in type <paramref name="q"/> is of type <see cref="IList{T}"/>,
+        /// this will set, for the appropriate elements of type <paramref name="q"/>, the property to the list without the element
+        /// with either Id or keys <paramref name="objs"/>. Furthermore, if such property has annotation <see cref="RequiredAttribute"/>,
+        /// and the item of type <typeparamref name="T"/> to delete was the only remaining element of the list, it will delete
+        /// the element of type <paramref name="q"/> in question.
+        /// </summary>
+        /// <typeparam name="T">The type of the object we wish to delete</typeparam>
+        /// <param name="t">The type being handled</param>
+        /// <param name="objs">The Id or Keys of the object of type <typeparamref name="T"/> to delete</param>
         private static void DeleteOtherPropInRelationWithTHavingRequiredTProperty<T>(Type t, params object[] objs)
         {
             // person -> finger
@@ -1162,78 +1526,132 @@ namespace WebApp.Tools
             }
         }
 
-        private static void DeleteOtherPropInSeveralRelationshipsWithT<T>(Type t, params object[] objs)
+        /// <summary>
+        /// An object of type <typeparamref name="T"/> with either Id or keys <paramref name="objs"/> is deleted.
+        /// Every type <paramref name="q"/> in <see cref="GetTypesForWhichTHasManyProperties"/> has to be updated
+        /// manually. Indeed, if we try to remove the object of type <typeparamref name="T"/> using EF, it will load
+        /// in the context all the properties relating to relationship with those types. The point being, there will be many
+        /// properties loaded. What can happen is an object of type <paramref name="q"/> might appear multiple times and therefore
+        /// EF will load it multiple times. Thus, an element of type <paramref name="q"/> with the same primary key (or keys) will be loaded in the context,
+        /// which will throw an exception if we simply do db.Set.Delete(item). Therefore, we have to manage those
+        /// separately.
+        /// <br/>
+        /// For now this does not work.
+        /// </summary>
+        /// <typeparam name="T">The type of the object we wish to delete</typeparam>
+        /// <param name="q">The type being handled</param>
+        /// <param name="objs">The Id or Keys of the object of type <typeparamref name="T"/> to delete</param>
+        private static void DeleteOtherPropInSeveralRelationshipsWithT<T>(Type q, params object[] objs)
         {
-            // person -> thought
-            // thought -> person
-            // person -> color
-            if (HasPropertyRelationNotList(t, typeof(T)))
+            throw new NotImplementedException();
+            if (HasPropertyRelationNotList(q, typeof(T)))
             {
-                List<string> propnames = DynamicDBTypesForType(t).Where(kv => kv.Value == typeof(T))
+                List<string> propnames = DynamicDBTypesForType(q).Where(kv => kv.Value == typeof(T))
                                                                               .Select(kv => kv.Key)
                                                                               .ToList();
                 using (MyDbContext context = new MyDbContext())
                 {
                     foreach (string propname in propnames)
                     {
-                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, t, propname, objs);
+                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, q, propname, objs);
                     }
                 }
             }
             else
             {
-                if (HasPropertyRelationList(t, typeof(T)))
+                if (HasPropertyRelationList(q, typeof(T)))
                 {
-                    // remove from list
-                    List<string> propnames = DynamicDBListTypesForType(t).Where(kv => kv.Value == typeof(T))
+                    List<string> propnames = DynamicDBListTypesForType(q).Where(kv => kv.Value == typeof(T))
                                                                                       .Select(kv => kv.Key)
                                                                                       .ToList();
                     using (MyDbContext context = new MyDbContext())
                     {
                         foreach (string propname in propnames)
                         {
-                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, t, propname, objs);
+                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, q, propname, objs);
                         }
                     }
                 }
                 else
                 {
-                    throw new HasNoPropertyRelationException(t, typeof(T));
+                    throw new HasNoPropertyRelationException(q, typeof(T));
                 }
             }
         }
 
+        /// <summary>
+        /// Every step that has to be taken into account before deleting an object of type <typeparamref name="T"/> having
+        /// either Id or keys <paramref name="objs"/>.
+        /// <br/>
+        /// See <see cref="DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty"/>, 
+        /// <see cref="DeleteOtherPropInRelationWithTHavingRequiredTProperty"/>,
+        /// <see cref="DeleteOtherPropInSeveralRelationshipsWithT"/> for more details.
+        /// <br/> 
+        /// In a nutshell :
+        /// <list type="bullet">
+        /// <item>
+        /// Every type <paramref name="q"/> in <see cref="GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty{T}"/> has to be updated
+        /// manually. 
+        /// <br/>
+        /// Indeed, <typeparamref name="T"/> has no property representing that relation, and thus no element of 
+        /// type <paramref name="q"/> will be loaded in the context and changed, wich will result in exceptions if not
+        /// taken care of.
+        /// </item>
+        /// <item>
+        /// Every type <paramref name="q"/> in <see cref="GetTypesInRelationWithTHavingRequiredTProperty"/> has to be updated
+        /// manually. 
+        /// <br/>
+        /// Indeed, required properties are not handled well in EF in case of relationships, especially if they are
+        /// of type <see cref="IList"/> (an empty <see cref="List"/> is not <see langword="null"/> and the annotation
+        /// <see cref="RequiredAttribute"/> is interpreted as nullable = <see langword="false"/>)
+        /// </item>
+        /// <item>
+        /// Every type <paramref name="q"/> in <see cref="GetTypesForWhichTHasManyProperties"/> has to be updated
+        /// manually. 
+        /// <br/>
+        /// Indeed, if we try to remove the object of type <typeparamref name="T"/> using EF, it will load
+        /// in the context all the properties relating to relationship with those types. The point being, there will be many
+        /// properties loaded. 
+        /// <br/>
+        /// What can happen is an object of type <paramref name="q"/> might appear multiple times and therefore
+        /// EF will load it multiple times. Thus, an element of type <paramref name="q"/> with the same primary key (or keys) will be loaded in the context,
+        /// which will throw an exception if we simply do db.Set.Delete(item). Therefore, we have to manage those
+        /// separately.
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">The type of the object to delete</typeparam>
+        /// <param name="objs">Either the Id or the keys of the object to delete</param>
         public static void PrepareDelete<T>(params object[] objs)
         {
             foreach (Type type in GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>())
             {
                 DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>(type, objs);
-                // address -> person
-                // color -> person
-                // worldvision -> person
             }
             foreach (Type type in GetTypesInRelationWithTHavingRequiredTProperty<T>())
             {
                 DeleteOtherPropInRelationWithTHavingRequiredTProperty<T>(type, objs);
-                // person -> finger
-                // person -> action
             }
             foreach (Type type in GetTypesForWhichTHasManyProperties<T>())
             {
                 DeleteOtherPropInSeveralRelationshipsWithT<T>(type, objs);
-                // person -> thought
-                // thought -> person
-                // person -> color
             }
         }
 
+        /// <summary>
+        /// Creates the array of all the values of properties of the element <paramref name="t"/> of type <typeparamref name="T"/>
+        /// to save that represent a relationship involving <typeparamref name="T"/>.
+        /// <br/>
+        /// Furthermore, for types appearing multiple times as properties in <typeparamref name="T"/>, set those to
+        /// <see cref="PropToNull"/> if necessary. See <see cref="GenericRepository{T}.Save(T, object[])"/> for further details.
+        /// </summary>
+        /// <typeparam name="T">The type of the element to save</typeparam>
+        /// <param name="t">The element to save</param>
+        /// <returns>The array of all the values of properties of <paramref name="t"/> representing relationships involving <typeparamref name="T"/>,
+        /// with values set to <see cref="PropToNull"/> if necessary.</returns>
         public static object[] PrepareSave<T>(T t)
         {
-            // person -> color
-            // person -> thoughts
-            // thoughts -> person
             IEnumerable<Type> TypesForWhichTHasManyProperties = GetTypesForWhichTHasManyProperties<T>();
-            //IEnumerable<Type> TypesForWhichTHasOneProperty = GetTypesForWhichTHasOneProperty();
             Dictionary<string, Type> dynamicDBTypes = DynamicDBTypes<T>();
             Dictionary<string, Type> dynamicDBListTypes = DynamicDBListTypes<T>();
             object[] res = new object[dynamicDBTypes.Count + dynamicDBListTypes.Count];
@@ -1288,8 +1706,19 @@ namespace WebApp.Tools
             return res;
         }
 
+
+
+
+
+
+
+
+
+
+
         private static void UpdateOtherPropInRelationWithTHavingRequiredTProperty<T>(Type type, T t)
         {
+            throw new NotImplementedException();
             //get type elements where the required property may have changed
             //delete if necessary
             //throw new NotImplementedException();
@@ -1297,6 +1726,7 @@ namespace WebApp.Tools
 
         private static void UpdateOneOtherPropInRelationWithTHavingRequiredTProperty<T>(string propertyName, object newValue)
         {
+            throw new NotImplementedException();
             Type typeChanged;
             if (DynamicDBTypes<T>().Keys.Contains(propertyName))
             {
@@ -1336,6 +1766,27 @@ namespace WebApp.Tools
                 }
             }
         }
+
+        /// <summary>
+        /// Prepares update for object <paramref name="t"/> of type <typeparamref name="T"/>. Every type <paramref name="q"/> in 
+        /// <see cref="GetTypesInRelationWithTHavingRequiredTProperty"/> has to be updated
+        /// manually. Indeed, required properties are not handled well in EF in case of relationships, especially if they are
+        /// of type <see cref="IList"/> (an empty <see cref="List"/> is not <see langword="null"/> and the annotation
+        /// <see cref="RequiredAttribute"/> is interpreted as nullable = <see langword="false"/>)
+        /// Creates the array of all the values of properties of the element <paramref name="t"/> of type <typeparamref name="T"/>
+        /// to update that represent a relationship involving <typeparamref name="T"/>.
+        /// <br/>
+        /// Furthermore, for types appearing multiple times as properties in <typeparamref name="T"/>, set those to
+        /// <see cref="PropToNull"/> if necessary. See <see cref="GenericRepository{T}.Save(T, object[])"/> for further details.
+        /// </summary>
+        /// <typeparam name="T">The type of the element to update</typeparam>
+        /// <param name="t">The element to update</param>
+        /// <returns>The array of all the values of properties of <paramref name="t"/> representing relationships involving <typeparamref name="T"/>,
+        /// with values set to <see cref="PropToNull"/> if necessary.</returns>
+        /// 
+
+
+
 
         public static object[] PrepareUpdate<T>(T t)
         {
