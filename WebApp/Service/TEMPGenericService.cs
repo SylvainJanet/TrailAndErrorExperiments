@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,10 +10,11 @@ using WebApp.Exceptions;
 using WebApp.Models;
 using WebApp.Repositories;
 using WebApp.Tools;
+using WebApp.Tools.Generic;
 
 namespace WebApp.Service
 {
-    public abstract class TEMPGenericService<T> : IGenericService<T> where T : class
+    public abstract class TEMPGenericService<T> : ITEMPGenericService<T> where T : class
     {
         protected IGenericRepository<T> _repository;
 
@@ -233,234 +236,32 @@ namespace WebApp.Service
 
         public void Delete(params object[] objs)
         {
-            PrepareDelete(objs);
+            GenericTools.PrepareDelete<T>(objs);
             _repository.Delete(objs);
         }
 
         public void Delete(T t)
         {
-            PrepareDelete(GenericTools.GetKeysValues(t));
+            GenericTools.PrepareDelete<T>(GenericTools.GetKeysValues(t));
             _repository.Delete(t);
         }
 
         public void Save(T t)
         {
-            object[] objs = PrepareSave(t);
+            object[] objs = GenericTools.PrepareSave(t);
             _repository.Save(t, objs);
         }
 
         public void Update(T t)
         {
-            object[] objs = PrepareUpdate(t);
+            object[] objs = GenericTools.PrepareUpdate(t);
             _repository.Update(t, objs);
         }
 
         public void UpdateOne(T t, string propertyName, object newValue)
         {
-            PrepareUpdateOne(t, propertyName, newValue);
+            GenericTools.PrepareUpdateOne(t, propertyName, newValue);
             _repository.UpdateOne(t, propertyName, newValue);
-        }
-
-        private bool HasPropertyRelation(Type t1, Type t2)
-        {
-            return HasPropertyRelationNotList(t1, t2) || HasPropertyRelationList(t1, t2);
-        }
-
-        private bool HasPropertyRelationNotList(Type t1, Type t2)
-        {
-            return GenericTools.DynamicDBTypesForType(t1).Values.Contains(t2);
-        }
-
-        private bool HasPropertyRelationList(Type t1, Type t2)
-        {
-            return GenericTools.DynamicDBListTypesForType(t1).Values.Contains(t2);
-        }
-
-        private IEnumerable<string> GetPropsNames(Type t1, Type t2)
-        {
-            return t1.GetProperties().Where(prop => prop.PropertyType == t2).Select(prop => prop.Name);
-        }
-
-        private IEnumerable<Type> GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty()
-        {
-            List<Type> res = new List<Type>();
-            foreach (Type type in Assembly.GetAssembly(typeof(T)).GetTypes()
-                                                                 .Where(myType => myType.IsClass && !myType.IsAbstract
-                                                                                                 && (myType.IsSubclassOf(typeof(BaseEntity)) || myType.IsSubclassOf(typeof(EntityWithKeys)))
-                                                                       ))
-            {
-                if (HasPropertyRelation(type, typeof(T)))
-                    if (!HasPropertyRelation(typeof(T), type))
-                        res.Add(type);
-            }
-            return res;
-        }
-
-        private IEnumerable<Type> GetTypesInRelationWithTHavingRequiredTProperty()
-        {
-            // person -> finger
-            // person -> action
-            throw new NotImplementedException();
-        }
-
-        private IEnumerable<Type> GetTypesForWhichTHasManyProperties()
-        {
-            // person -> color
-            // person -> thoughts
-            // thoughts -> person
-            throw new NotImplementedException();
-        }
-
-        private IEnumerable<Type> GetTypesForWhichTHasOneProperty()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty(Type t)
-        {
-            // address -> person
-            // color -> person
-            // worldvision -> person
-            if (HasPropertyRelationNotList(t, typeof(T)))
-            {
-                // set to null
-                throw new NotImplementedException();
-            }
-            else
-            {
-                if (HasPropertyRelationList(t, typeof(T)))
-                {
-                    // remove from list
-                    throw new NotImplementedException();
-                }
-                else
-                {
-                    // EXCEPTION
-                    throw new NotImplementedException();
-                }
-            }
-        }
-
-        private void DeleteOtherPropInRelationWithTHavingRequiredTProperty(Type t)
-        {
-            // person -> finger
-            // person -> action
-            throw new NotImplementedException();
-        }
-
-        private void DeleteOtherPropInSeveralManyToManyRelationshipsWithT(Type t)
-        {
-            // person -> thought
-            // thought -> person
-            // person -> color
-            throw new NotImplementedException();
-        }
-
-        private void PrepareDelete(params object[] objs)
-        {
-            foreach (Type type in GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty())
-            {
-                DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty(type);
-                // address -> person
-                // color -> person
-                // worldvision -> person
-            }
-            foreach (Type type in GetTypesInRelationWithTHavingRequiredTProperty())
-            {
-                DeleteOtherPropInRelationWithTHavingRequiredTProperty(type);
-                // person -> finger
-                // person -> action
-            }
-            foreach (Type type in GetTypesForWhichTHasManyProperties())
-            {
-                DeleteOtherPropInSeveralManyToManyRelationshipsWithT(type);
-                // person -> thought
-                // thought -> person
-                // person -> color
-            }
-        }
-
-        private object[] SetPropToNull(T t,Type type)
-        {
-            // person -> color
-            // person -> thoughts
-            // thoughts -> person
-            throw new NotImplementedException();
-        }
-
-        private object[] GetProp(T t, Type type)
-        {
-            throw new NotImplementedException();
-        }
-
-        private object[] PrepareSave(T t)
-        {
-            object[] res = new object[0];
-            foreach (Type type in GetTypesForWhichTHasManyProperties())
-            {
-                object[] temp = SetPropToNull(t, type);
-                res = (object[])res.Concat(temp);
-                // person -> color
-                // person -> thoughts
-                // thoughts -> person
-            }
-            foreach (Type type in GetTypesForWhichTHasOneProperty())
-            {
-                object[] temp = GetProp(t, type);
-                res = (object[])res.Concat(temp);
-            }
-            return res;
-        }
-
-        private void UpdateOtherPropInRelationWithTHavingRequiredTProperty(Type t)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void UpdateOneOtherPropInRelationWithTHavingRequiredTProperty(string propertyName, object newValue)
-        {
-            throw new NotImplementedException();
-        }
-
-        private object[] UpdateOtherPropForWhichTHasManyProperties(Type t)
-        {
-            // person -> thought
-            // thought -> person
-            // person -> color
-            throw new NotImplementedException();
-        }
-
-        private object[] PrepareUpdate(T t)
-        {
-            object[] res = new object[0];
-            foreach (Type type in GetTypesInRelationWithTHavingRequiredTProperty())
-            {
-                UpdateOtherPropInRelationWithTHavingRequiredTProperty(type);
-                // person -> finger
-                // person -> action
-            }
-            foreach (Type type in GetTypesForWhichTHasManyProperties())
-            {
-                object[] temp = UpdateOtherPropForWhichTHasManyProperties(type);
-                res = (object[])res.Concat(temp);
-                // person -> thought
-                // thought -> person
-                // person -> color
-            }
-            foreach (Type type in GetTypesForWhichTHasOneProperty())
-            {
-                object[] temp = GetProp(t, type);
-                res = (object[])res.Concat(temp);
-            }
-            return res;
-        }
-
-        private void PrepareUpdateOne(T t, string propertyName, object newValue)
-        {
-            if (GetTypesInRelationWithTHavingRequiredTProperty().Select(type => t.GetType().GetProperties().Where(prop => prop.PropertyType == type).Select(prop => prop.Name).Single()).Contains(propertyName))
-            {
-                UpdateOneOtherPropInRelationWithTHavingRequiredTProperty(propertyName, newValue);
-            }
-        }
+        } 
     }
 }

@@ -117,7 +117,7 @@ namespace WebApp.Service
                 {
                     _FingerService.Delete(finger);
                 }
-                foreach (Models.Action el in _ActionService.GetAllExcludes(1, int.MaxValue, null, a => a.People.Count() == 1 && a.People.Where(s => s.Id == t.Id).Count() == 1).Where(a => !t.Actions.Select(aa=>aa.Id).Contains(a.Id)))
+                foreach (Models.Action el in _ActionService.GetAllExcludes(1, int.MaxValue, null, a => a.People.Count() == 1 && a.People.Where(s => s.Id == t.Id).Count() == 1).Where(a => !t.Actions.Select(aa => aa.Id).Contains(a.Id)))
                 {
                     _ActionService.Delete(el);
                 }

@@ -54,10 +54,10 @@
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                @Html.DropDownListFor(modelItem => item.PeopleAtEase, new SelectList(item.PeopleAtEase.Select(o => o.Name), null, item.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+                @Html.DropDownListFor(modelItem => item.PeopleAtEase, new SelectList(item.PeopleAtEase.Select(o => o.Name), null, item.PeopleAtEase.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
             </td>
             <td>
-                @Html.DropDownListFor(modelItem => item.PeopleTimid, new SelectList(item.PeopleTimid.Select(o => o.Name), null, item.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+                @Html.DropDownListFor(modelItem => item.PeopleTimid, new SelectList(item.PeopleTimid.Select(o => o.Name), null, item.PeopleTimid.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |

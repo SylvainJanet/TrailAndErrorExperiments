@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
@@ -10,6 +11,7 @@ using System.Web;
 using WebApp.Exceptions;
 using WebApp.Models;
 using WebApp.Repositories;
+using WebApp.Tools.Generic;
 
 namespace WebApp.Tools
 {
@@ -58,11 +60,11 @@ namespace WebApp.Tools
         /// <typeparam name="T">The type invistigated.</typeparam>
         /// <returns>The properties names that are keys, in the same order as in the declaration of <typeparamref name="T"/>. If
         /// <typeparamref name="T"/> derives from <see cref="BaseEntity"/>, returns <see langword="null"/>.</returns>
-        public static string[] KeyPropertiesNames<T>()
+        private static string[] KeyPropertiesNames<T>()
         {
             if (typeof(T).IsSubclassOf(typeof(BaseEntity)))
                 return null;
-            return typeof(T).GetProperties().Where(p => p.GetCustomAttributes(typeof(KeyAttribute), false) != null)
+            return typeof(T).GetProperties().Where(p => p.GetCustomAttribute(typeof(KeyAttribute), false) != null)
                                             .Select(p => p.Name)
                                             .ToArray();
         }
@@ -114,7 +116,7 @@ namespace WebApp.Tools
         /// </summary>
         /// <param name="t">The type invistigated.</param>
         /// <returns>The dictionary</returns>
-        public static Dictionary<string, Type> DynamicDBListTypesForType(Type t)
+        private static Dictionary<string, Type> DynamicDBListTypesForType(Type t)
         {
             Dictionary<string, Type> res = new Dictionary<string, Type>();
             foreach (PropertyInfo property in t.GetProperties())
@@ -141,7 +143,7 @@ namespace WebApp.Tools
         /// </summary>
         /// <param name="t">The type invistigated.</param>
         /// <returns>The dictionary</returns>
-        public static Dictionary<string, Type> DynamicDBTypesForType(Type t)
+        private static Dictionary<string, Type> DynamicDBTypesForType(Type t)
         {
             Dictionary<string, Type> res = new Dictionary<string, Type>();
             foreach (PropertyInfo property in t.GetProperties())
@@ -211,7 +213,7 @@ namespace WebApp.Tools
         /// <param name="objs">The array of object tested.</param>
         /// <exception cref="InvalidKeyForClassException"/>
         public static void CheckIfObjectIsKey<T>(object[] objs)
-        { 
+        {
             if (typeof(T).IsSubclassOf(typeof(BaseEntity)))
             {
                 if (objs.Length != 1 || !(objs[0] is int))
@@ -239,7 +241,7 @@ namespace WebApp.Tools
         /// <param name="objs">The objects to cast to int as an Id</param>
         /// <returns>The Id</returns>
         /// <exception cref="InvalidKeyForClassException"/>
-        public static int? ObjectsToId<T>(object[] objs)
+        private static int? ObjectsToId<T>(object[] objs)
         {
             if (!typeof(T).IsSubclassOf(typeof(BaseEntity)))
                 throw new InvalidKeyForClassException(typeof(T));
@@ -271,11 +273,11 @@ namespace WebApp.Tools
         /// <param name="value">The value</param>
         /// <returns>The lambda expression properly constructed so that LINQ to SQL interpretation will be
         /// successfull</returns>
-        public static Expression<Func<TItem, bool>> PropertyEquals<TItem>(PropertyInfo property, object value)
+        private static Expression<Func<TItem, bool>> PropertyEquals<TItem>(PropertyInfo property, object value)
         {
             var param = Expression.Parameter(typeof(TItem));
             var body = Expression.Equal(Expression.Property(param, property),
-                                        Expression.Constant(value,property.PropertyType));
+                                        Expression.Constant(value, property.PropertyType));
             return Expression.Lambda<Func<TItem, bool>>(body, param);
         }
 
@@ -298,7 +300,7 @@ namespace WebApp.Tools
         /// <param name="property">The property to specify</param>
         /// <returns>The lambda expression properly constructed so that LINQ to SQL interpretation will be
         /// successfull</returns>
-        public static Expression<Func<TItem, TKey>> GetKey<TItem, TKey>(PropertyInfo property)
+        private static Expression<Func<TItem, TKey>> GetKey<TItem, TKey>(PropertyInfo property)
         {
             var param = Expression.Parameter(typeof(TItem));
             var body = Expression.Property(param, property);
@@ -407,7 +409,7 @@ namespace WebApp.Tools
         /// <returns>The method.</returns>
         private static MethodInfo GetMethodGetKey<T>(string propertyName)
         {
-            return typeof(GenericTools).GetMethod("GetKey", BindingFlags.Public | BindingFlags.Static)
+            return typeof(GenericTools).GetMethod("GetKey", BindingFlags.NonPublic | BindingFlags.Static)
                                        .MakeGenericMethod(new[] { 
                                                                  typeof(T), 
                                                                  typeof(T).GetProperty(propertyName).PropertyType 
@@ -586,7 +588,7 @@ namespace WebApp.Tools
         /// <typeparam name="T">The type invistigated</typeparam>
         /// <param name="objs">The array that must be many keys values.</param>
         /// <exception cref="InvalidKeyForClassException"/>
-        public static void CheckIfObjsIsManyKeys<T>(object[] objs)
+        private static void CheckIfObjsIsManyKeys<T>(object[] objs)
         {
             int nbrkeys = KeyPropertiesNames<T>().Length;
             if (objs.Length == 0 || objs.Length % nbrkeys != 0)
@@ -686,6 +688,727 @@ namespace WebApp.Tools
                 }
             }
             return ids;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private static Expression<Func<TItem, bool>> PropertyKeysEquals<TItem>(PropertyInfo prop1, PropertyInfo prop2, object value)
+        {
+            var param = Expression.Parameter(typeof(TItem));
+            var exp = Expression.Property(param, prop1);
+            var body = Expression.Equal(Expression.Property(exp, prop2),
+                                        Expression.Constant(value, prop2.PropertyType));
+            return Expression.Lambda<Func<TItem, bool>>(body, param);
+        }
+
+        private static Expression<Func<TItem, bool>> PropertyKeysNotNull<TItem>(PropertyInfo prop1)
+        {
+            var param = Expression.Parameter(typeof(TItem));
+            var exp = Expression.Property(param, prop1);
+            var body = Expression.IsFalse(Expression.Equal(exp, Expression.Constant(null)));
+            return Expression.Lambda<Func<TItem, bool>>(body, param);
+        }
+
+        private static List<Q> ListWherePropNotNull<T, Q>(List<Q> req, Type type, string propname)
+        {
+            req = req.Where(
+                            PropertyKeysNotNull<Q>(typeof(Q).GetProperty(propname)).Compile()
+                            ).ToList();
+            return req;
+        }
+
+        private static List<Q> ListWherePropKeysAre<T, Q>(List<Q> req, Type type, string propname, object[] objs)
+        {
+            CheckIfObjectIsKey<T>(objs);
+            if (typeof(T).IsSubclassOf(typeof(BaseEntity)))
+            {
+                int? id = ObjectsToId<T>(objs);
+                req = req.Where(
+                               PropertyKeysEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty("Id"), id).Compile()
+                               ).ToList();
+            }
+            else
+            {
+                int i = 0;
+                foreach (object obj in objs)
+                {
+                    req = req.Where(
+                                    PropertyKeysEquals<Q>(typeof(Q).GetProperty(propname), typeof(T).GetProperty(KeyPropertiesNames<T>()[i]), obj).Compile()
+                                    ).ToList();
+                    i++;
+                }
+            }
+            return req;
+        }
+
+        private static Expression<Func<T,bool>> ExpressionWhereKeysAre<T>(params object[] objs)
+        {
+            var param = Expression.Parameter(typeof(T));
+            Expression body;
+            if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
+            {
+                int id = (int)objs[0];
+                body = Expression.Equal(Expression.Property(param, typeof(T).GetProperty("Id")),
+                                        Expression.Constant(id, typeof(T).GetProperty("Id").PropertyType));
+            }
+            else
+            {
+                body = Expression.Equal(Expression.Property(param, typeof(T).GetProperty(KeyPropertiesNames<T>()[0])),
+                                        Expression.Constant(objs[0], typeof(T).GetProperty(KeyPropertiesNames<T>()[0]).PropertyType));
+                for (int i = 1; i < objs.Length; i++)
+                {
+                    body = Expression.And(body,
+                                          Expression.Equal(Expression.Property(param, typeof(T).GetProperty(KeyPropertiesNames<T>()[i])),
+                                                           Expression.Constant(objs[i], typeof(T).GetProperty(KeyPropertiesNames<T>()[i]).PropertyType)));
+                }
+            }
+            return Expression.Lambda<Func<T, bool>>(body, param);
+        }
+
+        private static bool ListWhereKeysAreCountSup1<T>(IList<T> req, params object[] objs)
+        {
+            Func<T, bool> func = ExpressionWhereKeysAre<T>(objs).Compile();
+            return req.Where(func).Count() >= 1;
+        }
+
+        private static Expression<Func<Q, bool>> ExpressionListWherePropListCountainsElementWithGivenKeys<T, Q>(PropertyInfo prop, params object[] objs)
+        {
+            var param = Expression.Parameter(typeof(Q));
+            var exp = Expression.Property(param, prop);
+            // t => t.propname
+            //var body = Expression.GetActionType;
+            MethodInfo methodExpressionWhereKeysAre = typeof(GenericTools).GetMethod("ExpressionWhereKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                             .MakeGenericMethod(typeof(T));
+            //var body = Expression.Call(methodListWhereKeysAreCountSup1, exp, Expression.Constant(objs, typeof(object[])));
+            Expression exp2 = (Expression)methodExpressionWhereKeysAre.Invoke(typeof(GenericTools), new object[] { objs });
+
+            MethodInfo methodWhere = typeof(Enumerable).GetMethods().Where(m => m.Name == "Where").ToList()[0].MakeGenericMethod(typeof(T));
+            Expression body = Expression.Call(methodWhere, exp, exp2);
+
+            MethodInfo methodCount = typeof(Enumerable).GetMethods().Where(m => m.Name == "Count" && m.GetParameters().Length == 1).Single()
+                                                       .MakeGenericMethod(typeof(T)); //
+            body = Expression.Call(methodCount, body);
+
+            body = Expression.GreaterThanOrEqual(body, Expression.Constant(1));
+            // t => t.propname.Where(...).Count()>=1
+            return Expression.Lambda<Func<Q, bool>>(body, param);
+        }
+
+        private static List<Q> ListWherePropListCountainsElementWithGivenKeys<T,Q>(List<Q> req, Type t, string propname, params object[] objs)
+        {
+            Func<Q, bool> func = ExpressionListWherePropListCountainsElementWithGivenKeys<T,Q>(t.GetProperty(propname),objs).Compile();
+            return req.Where(func).ToList();
+            //req.Where( t => t.propname.Where(...).Count()>=1)
+        }
+
+        private static Expression<Func<Q,bool>> ExpressionListRemoveElementWithGivenKeys<T,Q>(params object[] objs)
+        {
+            var param = Expression.Parameter(typeof(Q));
+            Expression body = Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty(KeyPropertiesNames<Q>()[0])),
+                                                              Expression.Constant(objs[0], typeof(Q).GetProperty(KeyPropertiesNames<Q>()[0]).PropertyType)));
+            for (int i = 1; i < objs.Length; i++)
+            {
+                body = Expression.Or(body,
+                                    Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty(KeyPropertiesNames<Q>()[i])),
+                                                                    Expression.Constant(objs[i], typeof(Q).GetProperty(KeyPropertiesNames<Q>()[i]).PropertyType))));
+            }
+            // t => t.key1 != value1 || t.key2 != value2 ...
+            return Expression.Lambda<Func<Q, bool>>(body, param);
+        }
+
+        private static Expression<Func<Q,bool>> ExpressionListRemoveElementWithGivenId<T,Q>(int? id)
+        {
+            var param = Expression.Parameter(typeof(Q));
+            var body = Expression.Not(Expression.Equal(Expression.Property(param, typeof(Q).GetProperty("Id")),
+                                                       Expression.Constant(id, typeof(int?))));
+            return Expression.Lambda<Func<Q, bool>>(body, param);
+        }
+
+        private static List<Q> ListRemoveElementWithGivenKeys<T,Q>(List<Q> req, params object[] objs)
+        {
+            CheckIfObjectIsKey<T>(objs);
+            Func<Q, bool> func;
+            if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
+            {
+                int id = (int)objs[0];
+               func = ExpressionListRemoveElementWithGivenId<T,Q>(id).Compile();
+            }
+            else
+            {
+                func = ExpressionListRemoveElementWithGivenKeys<T,Q>(objs).Compile();
+            }
+            return req.Where(func).ToList();
+        }
+
+        private static bool HasPropertyRelation(Type t1, Type t2)
+        {
+            return HasPropertyRelationNotList(t1, t2) || HasPropertyRelationList(t1, t2);
+        }
+
+        private static bool HasPropertyRelationNotList(Type t1, Type t2)
+        {
+            return DynamicDBTypesForType(t1).Values.Contains(t2);
+        }
+
+        private static bool HasPropertyRelationList(Type t1, Type t2)
+        {
+            return DynamicDBListTypesForType(t1).Values.Contains(t2);
+        }
+
+        private static IEnumerable<string> GetPropsNames(Type t1, Type t2)
+        {
+            return t1.GetProperties().Where(prop => prop.PropertyType == t2).Select(prop => prop.Name);
+        }
+
+        private static bool HasPropertyRelationRequired(Type t1, Type t2)
+        {
+            if (HasPropertyRelationNotList(t1, t2))
+            {
+                List<string> PropNames = DynamicDBTypesForType(t1).Where((propnametype) => propnametype.Value == t2).Select(propnametype => propnametype.Key).ToList();
+                return t1.GetProperties().Where(p => PropNames.Contains(p.Name)).Where(p => p.GetCustomAttribute(typeof(RequiredAttribute), false) != null).Count() != 0;
+            }
+            if (HasPropertyRelationList(t1, t2))
+            {
+                List<string> PropNames = DynamicDBListTypesForType(t1).Where((propnametype) => propnametype.Value == t2).Select(propnametype => propnametype.Key).ToList();
+                return t1.GetProperties().Where(p => PropNames.Contains(p.Name)).Where(p => p.GetCustomAttribute(typeof(RequiredAttribute), false) != null).Count() != 0;
+            }
+            return false;
+        }
+
+        private static IEnumerable<Type> GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>()
+        {
+            List<Type> res = new List<Type>();
+            foreach (Type type in Assembly.GetAssembly(typeof(T)).GetTypes()
+                                                                 .Where(myType => myType.IsClass && !myType.IsAbstract
+                                                                                                 && (myType.IsSubclassOf(typeof(BaseEntity)) || myType.IsSubclassOf(typeof(EntityWithKeys)))
+                                                                       ))
+            {
+                if (HasPropertyRelation(type, typeof(T)))
+                    if (!HasPropertyRelation(typeof(T), type))
+                        res.Add(type);
+            }
+            return res;
+        }
+
+        private static IEnumerable<Type> GetTypesInRelationWithTHavingRequiredTProperty<T>()
+        {
+            List<Type> res = new List<Type>();
+            foreach (Type type in Assembly.GetAssembly(typeof(T)).GetTypes()
+                                                                 .Where(myType => myType.IsClass && !myType.IsAbstract
+                                                                                                 && (myType.IsSubclassOf(typeof(BaseEntity)) || myType.IsSubclassOf(typeof(EntityWithKeys)))
+                                                                       ))
+            {
+                if (HasPropertyRelationRequired(type, typeof(T)))
+                    res.Add(type);
+            }
+            return res;
+            // person -> finger
+            // person -> action
+        }
+
+        private static bool HasManyProperties(Type t1, Type t2)
+        {
+            int countNotList = DynamicDBTypesForType(t1).Values.Where(t => t == t2).Count();
+            int countList = DynamicDBListTypesForType(t1).Values.Where(t => t == t2).Count();
+            return countNotList + countList > 1;
+        }
+
+        private static IEnumerable<Type> GetTypesForWhichTHasManyProperties<T>()
+        {
+            List<Type> res = new List<Type>();
+            foreach (Type type in DynamicDBTypes<T>().Values.Concat(DynamicDBListTypes<T>().Values))
+            {
+                if (HasManyProperties(typeof(T), type))
+                    res.Add(type);
+            }
+            return res;
+            // person -> color
+            // person -> thoughts
+            // thoughts -> person
+        }
+
+        private static IEnumerable<Type> GetTypesForWhichTHasOneProperty<T>()
+        {
+            List<Type> res = new List<Type>();
+            foreach (Type type in DynamicDBTypes<T>().Values.Concat(DynamicDBListTypes<T>().Values))
+            {
+                if (!HasManyProperties(typeof(T), type))
+                    res.Add(type);
+            }
+            return res;
+        }
+
+        private static dynamic GetServiceFromContext(MyDbContext context, Type t)
+        {
+            Type typetRepository = Assembly.GetAssembly(t).GetTypes().Single(typ => typ.Name == t.Name + "Repository");
+            Type typetService = Assembly.GetAssembly(t).GetTypes().Single(typ => typ.Name == t.Name + "Service");
+            dynamic tRepository = Activator.CreateInstance(typetRepository, context);
+            dynamic tService = Activator.CreateInstance(typetService, tRepository);
+            return tService;
+        }
+
+        private static void SetForTypePropertyWithGivenKeysToNullInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        {
+            dynamic tService = GetServiceFromContext(context, t);
+
+            MethodInfo methodListWherePropNotNull = typeof(GenericTools).GetMethod("ListWherePropNotNull", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                                    .MakeGenericMethod(new Type[] { typeof(T), t });
+            dynamic req = methodListWherePropNotNull.Invoke(typeof(GenericTools), new object[] { tService.GetAllIncludes(1, int.MaxValue, null, null), t, propname });
+
+            MethodInfo methodQueryWherePropKeysAre = typeof(GenericTools).GetMethod("ListWherePropKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                         .MakeGenericMethod(new Type[] { typeof(T), t });
+            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+            foreach (var tItem in req)
+            {
+                if (t.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) == null)
+                    tService.UpdateOne(tItem, propname, null);
+                else
+                    tService.Delete(tItem);
+            }
+        }
+
+        private static object[] ConcatArrays(object[] A1, object[] A2)
+        {
+            object[] res = new object[A1.Length + 1];
+            for (int i = 0; i < A1.Length; i++)
+            {
+                res[i] = A1[i];
+            }
+            res[A1.Length] = A2;
+            return res;
+        }
+
+        private static void RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        {
+            dynamic tService = GetServiceFromContext(context, t);
+
+            MethodInfo methodExpressionListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ExpressionListWherePropListCountainsElementWithGivenKeys")
+                                                                                                            .MakeGenericMethod(new Type[] { typeof(T), t });
+            dynamic func = methodExpressionListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), ConcatArrays(new object[] { t.GetProperty(propname) }, objs));
+
+            dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, func);
+
+            //MethodInfo methodListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ListWherePropListCountainsElementWithGivenKeys", BindingFlags.Public | BindingFlags.Static)
+            //                                                                                      .MakeGenericMethod(new Type[] { typeof(T), t });
+            //req = methodListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+
+            //get elements for which the property includes the element gith given keys
+            //req = tService.GetAllIncludes(1, int.MaxValue, null, null).Where(t => t.propname.Where(...).Count()>=1)
+
+            foreach (var tItem in req)
+            {
+                var oldValue = tItem.GetType().GetProperty(propname).GetValue(tItem);
+                if (t.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) != null && ((oldValue as IList).Count == 1))
+                {
+                    tService.Delete(tItem);
+                }
+                else
+                {
+                    MethodInfo methodListRemoveElementWithGivenKeys = typeof(GenericTools).GetMethod("ListRemoveElementWithGivenKeys", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                                          .MakeGenericMethod(new Type[] { t, typeof(T) });
+                    var newValue = methodListRemoveElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { oldValue, objs });
+                    tService.UpdateOne(tItem, propname, newValue);
+                }
+            }
+
+            //foreach (var tItem in req)
+            //{
+            //    // remove from the property of these items the element with given keys
+            //    tItem.propname.Where(...);
+            //    tService.UpdateOne(tItem, propname, tItem.propname);
+            //    if (required and tItem.propname.count()=0)
+            //    tService.Delete(tItem);
+            //}
+        }
+
+        private static void DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>(Type t, params object[] objs)
+        {
+            // OK address -> person
+            // OK color -> person
+            // OK worldvision -> person
+            if (HasPropertyRelationNotList(t, typeof(T)))
+            {
+                List<string> propnames = DynamicDBTypesForType(t).Where(kv => kv.Value == typeof(T))
+                                                                              .Select(kv => kv.Key)
+                                                                              .ToList();
+                using (MyDbContext context = new MyDbContext())
+                {
+                    foreach (string propname in propnames)
+                    {
+                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, t, propname, objs);
+                    }
+                }
+            }
+            else
+            {
+                if (HasPropertyRelationList(t, typeof(T)))
+                {
+                    List<string> propnames = DynamicDBListTypesForType(t).Where(kv => kv.Value == typeof(T))
+                                                                                      .Select(kv => kv.Key)
+                                                                                      .ToList();
+                    using (MyDbContext context = new MyDbContext())
+                    {
+                        foreach (string propname in propnames)
+                        {
+                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, t, propname, objs);
+                        }
+                    }
+                }
+                else
+                {
+                    throw new HasNoPropertyRelationException(t, typeof(T));
+                }
+            }
+        }
+
+        private static void DeleteItemOfTypeWithRequiredPropertyHavingGivenKeysInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        {
+            dynamic tService = GetServiceFromContext(context, t);
+
+            dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, null);
+            MethodInfo methodQueryWherePropKeysAre = typeof(GenericTools).GetMethod("ListWherePropKeysAre", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                         .MakeGenericMethod(new Type[] { typeof(T), t });
+            req = methodQueryWherePropKeysAre.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+            foreach (var tItem in req)
+            {
+                tService.Delete(tItem);
+            }
+        }
+
+        private static void DeleteOrUpdateItemOfTypeWithRequiredListPropertyHavingGivenKeysInNewContext<T>(MyDbContext context, Type t, string propname, params object[] objs)
+        {
+            dynamic tService = GetServiceFromContext(context, t);
+
+            dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, null);
+
+            MethodInfo methodListWherePropListCountainsElementWithGivenKeys = typeof(GenericTools).GetMethod("ListWherePropListCountainsElementWithGivenKeys", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                                                  .MakeGenericMethod(new Type[] { typeof(T), t });
+            req = methodListWherePropListCountainsElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { req, t, propname, objs });
+
+            // get elements for which the element with given keys is t
+            //req = tService.GetAllIncludes(1, int.MaxValue, null, null).Where(t => t.propname.Where(...).Count()>=1)
+
+            foreach (var tItem in req)
+            {
+                var oldValue = tItem.GetType().GetProperty(propname).GetValue(tItem);
+                if ((oldValue as IList).Count == 1)
+                {
+                    tService.Delete(tItem);
+                }
+                else
+                {
+                    MethodInfo methodListRemoveElementWithGivenKeys = typeof(GenericTools).GetMethod("ListRemoveElementWithGivenKeys", BindingFlags.NonPublic | BindingFlags.Static)
+                                                                                          .MakeGenericMethod(new Type[] { typeof(T), t });
+                    var newValue = methodListRemoveElementWithGivenKeys.Invoke(typeof(GenericTools), new object[] { oldValue, objs });
+                    tService.UpdateOne(tItem, propname, newValue);
+                }
+            }
+
+            //foreach (var tItem in req)
+            //{
+            //    if tItem.propname.Count() == 1
+            //    tService.Delete(tItem)
+            //    else
+            //    tItem.propname.Where(...);
+            //}
+
+        }
+
+        private static void DeleteOtherPropInRelationWithTHavingRequiredTProperty<T>(Type t, params object[] objs)
+        {
+            // person -> finger
+            // person -> action
+            if (HasPropertyRelationNotList(t, typeof(T)))
+            {
+                List<string> propnames = DynamicDBTypesForType(t).Where(kv => kv.Value == typeof(T)).Select(kv => kv.Key)
+                                                                              .Where(propname => t.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) != null)
+                                                                              .ToList();
+                using (MyDbContext context = new MyDbContext())
+                {
+                    foreach (string propname in propnames)
+                    {
+                        DeleteItemOfTypeWithRequiredPropertyHavingGivenKeysInNewContext<T>(context, t, propname, objs);
+                    }
+                }
+            }
+            else
+            {
+                if (HasPropertyRelationList(t, typeof(T)))
+                {
+                    List<string> propnames = DynamicDBListTypesForType(t).Where(kv => kv.Value == typeof(T)).Select(kv => kv.Key)
+                                                                                      .Where(propname => t.GetProperty(propname).GetCustomAttribute(typeof(RequiredAttribute), false) != null)
+                                                                                      .ToList();
+                    using (MyDbContext context = new MyDbContext())
+                    {
+                        foreach (string propname in propnames)
+                        {
+                            DeleteOrUpdateItemOfTypeWithRequiredListPropertyHavingGivenKeysInNewContext<T>(context, t, propname, objs);
+                        }
+                    }
+                }
+                else
+                {
+                    throw new HasNoPropertyRelationException(t, typeof(T));
+                }
+            }
+        }
+
+        private static void DeleteOtherPropInSeveralRelationshipsWithT<T>(Type t, params object[] objs)
+        {
+            // person -> thought
+            // thought -> person
+            // person -> color
+            if (HasPropertyRelationNotList(t, typeof(T)))
+            {
+                List<string> propnames = DynamicDBTypesForType(t).Where(kv => kv.Value == typeof(T))
+                                                                              .Select(kv => kv.Key)
+                                                                              .ToList();
+                using (MyDbContext context = new MyDbContext())
+                {
+                    foreach (string propname in propnames)
+                    {
+                        SetForTypePropertyWithGivenKeysToNullInNewContext<T>(context, t, propname, objs);
+                    }
+                }
+            }
+            else
+            {
+                if (HasPropertyRelationList(t, typeof(T)))
+                {
+                    // remove from list
+                    List<string> propnames = DynamicDBListTypesForType(t).Where(kv => kv.Value == typeof(T))
+                                                                                      .Select(kv => kv.Key)
+                                                                                      .ToList();
+                    using (MyDbContext context = new MyDbContext())
+                    {
+                        foreach (string propname in propnames)
+                        {
+                            RemoveForTypePropertyListElementWithGivenKeyInNewContext<T>(context, t, propname, objs);
+                        }
+                    }
+                }
+                else
+                {
+                    throw new HasNoPropertyRelationException(t, typeof(T));
+                }
+            }
+        }
+
+        public static void PrepareDelete<T>(params object[] objs)
+        {
+            foreach (Type type in GetTypesInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>())
+            {
+                DeleteOtherPropInRelationWithTHavingTPropertyTAndTNotHavingProperty<T>(type, objs);
+                // address -> person
+                // color -> person
+                // worldvision -> person
+            }
+            foreach (Type type in GetTypesInRelationWithTHavingRequiredTProperty<T>())
+            {
+                DeleteOtherPropInRelationWithTHavingRequiredTProperty<T>(type, objs);
+                // person -> finger
+                // person -> action
+            }
+            foreach (Type type in GetTypesForWhichTHasManyProperties<T>())
+            {
+                DeleteOtherPropInSeveralRelationshipsWithT<T>(type, objs);
+                // person -> thought
+                // thought -> person
+                // person -> color
+            }
+        }
+
+        public static object[] PrepareSave<T>(T t)
+        {
+            // person -> color
+            // person -> thoughts
+            // thoughts -> person
+            IEnumerable<Type> TypesForWhichTHasManyProperties = GetTypesForWhichTHasManyProperties<T>();
+            //IEnumerable<Type> TypesForWhichTHasOneProperty = GetTypesForWhichTHasOneProperty();
+            Dictionary<string, Type> dynamicDBTypes = DynamicDBTypes<T>();
+            Dictionary<string, Type> dynamicDBListTypes = DynamicDBListTypes<T>();
+            object[] res = new object[dynamicDBTypes.Count + dynamicDBListTypes.Count];
+            var i = 0;
+            foreach (PropertyInfo prop in typeof(T).GetProperties())
+            {
+                if (DynamicDBTypes<T>().Keys.Contains(prop.Name))
+                {
+                    if (TypesForWhichTHasManyProperties.Contains(prop.PropertyType))
+                    {
+                        if (prop.GetValue(t) == null)
+                        {
+                            res[i] = new PropToNull(prop.Name);
+                        }
+                        else
+                        {
+                            res[i] = prop.GetValue(t);
+                        }
+                    }
+                    else
+                    {
+                        res[i] = prop.GetValue(t);
+                    }
+                }
+                else
+                {
+                    if (DynamicDBListTypes<T>().Keys.Contains(prop.Name))
+                    {
+                        if (TypesForWhichTHasManyProperties.Contains(DynamicDBListTypes<T>()[prop.Name]))
+                        {
+                            if (prop.GetValue(t) == null || (prop.GetValue(t) as IList).Count == 0)
+                            {
+                                res[i] = new PropToNull(prop.Name);
+                            }
+                            else
+                            {
+                                res[i] = prop.GetValue(t);
+                            }
+                        }
+                        else
+                        {
+                            res[i] = prop.GetValue(t);
+                        }
+                    }
+                    else
+                    {
+                        i--;
+                    }
+                }
+                i++;
+            }
+            return res;
+        }
+
+        private static void UpdateOtherPropInRelationWithTHavingRequiredTProperty<T>(Type type, T t)
+        {
+            //get type elements where the required property may have changed
+            //delete if necessary
+            //throw new NotImplementedException();
+        }
+
+        private static void UpdateOneOtherPropInRelationWithTHavingRequiredTProperty<T>(string propertyName, object newValue)
+        {
+            Type typeChanged;
+            if (DynamicDBTypes<T>().Keys.Contains(propertyName))
+            {
+                typeChanged = DynamicDBTypes<T>()[propertyName];
+
+                using (MyDbContext context = new MyDbContext())
+                {
+                    dynamic tService = GetServiceFromContext(context, typeChanged);
+
+                    dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, null);
+
+                    //req.Where(...)
+
+                    foreach (var tItem in req)
+                    {
+                        tService.Delete(tItem);
+                    }
+                }
+            }
+            else
+            {
+                typeChanged = DynamicDBListTypes<T>()[propertyName];
+
+                using (MyDbContext context = new MyDbContext())
+                {
+                    dynamic tService = GetServiceFromContext(context, typeChanged);
+
+                    dynamic req = tService.GetAllIncludes(1, int.MaxValue, null, null);
+
+                    //req.Where(...)
+
+                    foreach (var tItem in req)
+                    {
+                        if (tItem.prop.Count = 1)
+                            tService.Delete(tItem);
+                    }
+                }
+            }
+        }
+
+        public static object[] PrepareUpdate<T>(T t)
+        {
+            foreach (Type type in GetTypesInRelationWithTHavingRequiredTProperty<T>())
+            {
+                UpdateOtherPropInRelationWithTHavingRequiredTProperty(type, t);
+                // person -> finger
+                // person -> action
+            }
+
+            IEnumerable<Type> TypesForWhichTHasManyProperties = GetTypesForWhichTHasManyProperties<T>();
+            //IEnumerable<Type> TypesForWhichTHasOneProperty = GetTypesForWhichTHasOneProperty();
+            Dictionary<string, Type> dynamicDBTypes = DynamicDBTypes<T>();
+            Dictionary<string, Type> dynamicDBListTypes = DynamicDBListTypes<T>();
+            object[] res = new object[dynamicDBTypes.Count + dynamicDBListTypes.Count];
+            var i = 0;
+            foreach (PropertyInfo prop in typeof(T).GetProperties())
+            {
+                if (DynamicDBTypes<T>().Keys.Contains(prop.Name))
+                {
+                    if (TypesForWhichTHasManyProperties.Contains(prop.PropertyType))
+                    {
+                        if (prop.GetValue(t) == null)
+                        {
+                            res[i] = new PropToNull(prop.Name);
+                        }
+                        else
+                        {
+                            res[i] = prop.GetValue(t);
+                        }
+                    }
+                    else
+                    {
+                        res[i] = prop.GetValue(t);
+                    }
+                }
+                else
+                {
+                    if (DynamicDBListTypes<T>().Keys.Contains(prop.Name))
+                    {
+                        if (TypesForWhichTHasManyProperties.Contains(DynamicDBListTypes<T>()[prop.Name]))
+                        {
+                            if (prop.GetValue(t) == null || (prop.GetValue(t) as IList).Count == 0)
+                            {
+                                res[i] = new PropToNull(prop.Name);
+                            }
+                            else
+                            {
+                                res[i] = prop.GetValue(t);
+                            }
+                        }
+                        else
+                        {
+                            res[i] = prop.GetValue(t);
+                        }
+                    }
+                    else
+                    {
+                        i--;
+                    }
+                }
+                i++;
+            }
+            return res;
+        }
+
+        public static void PrepareUpdateOne<T>(T t, string propertyName, object newValue)
+        {
+            if (GetTypesInRelationWithTHavingRequiredTProperty<T>().Select(type => t.GetType().GetProperties().Where(prop => prop.PropertyType == type).Select(prop => prop.Name).SingleOrDefault()).Contains(propertyName))
+            {
+                UpdateOneOtherPropInRelationWithTHavingRequiredTProperty<T>(propertyName, newValue);
+            }
         }
     }
 }

@@ -55,7 +55,7 @@
             </td>
             @*ManyToMany*@
             <td>
-                @Html.DropDownListFor(modelItem => item.People, new SelectList(item.People.Select(o => o.Name), null, item.People.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" });
+                @Html.DropDownListFor(modelItem => item.People, new SelectList(item.People.Select(o => o.Name), null, item.People.Select(o => o.Name)), htmlAttributes: new { @class = "form-control" })
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |

@@ -73,7 +73,7 @@ namespace WebApp.Service
 
         public override void UpdateOne(Color t, string propertyName, object newValue)
         {
-            _repository.UpdateOne(t,propertyName, newValue);
+            _repository.UpdateOne(t, propertyName, newValue);
         }
     }
 }

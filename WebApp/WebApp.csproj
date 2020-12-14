@@ -142,6 +142,7 @@
     <Compile Include="EntityConfigurations\PersonConfiguration.cs" />
     <Compile Include="Exceptions\CannotWriteReadOnlyPropertyException.cs" />
     <Compile Include="Exceptions\CascadeCreationInDBException.cs" />
+    <Compile Include="Exceptions\HasNoPropertyRelationException.cs" />
     <Compile Include="Exceptions\IdListEmptyForClassException.cs" />
     <Compile Include="Exceptions\IdNullExceptionForClass.cs" />
     <Compile Include="Exceptions\InvalidArgumentsForClassException.cs" />
@@ -218,6 +219,7 @@
     <Compile Include="Service\BrainService.cs" />
     <Compile Include="Service\ColorService.cs" />
     <Compile Include="Service\FingerService.cs" />
+    <Compile Include="Service\ITEMPGenericService.cs" />
     <Compile Include="Service\TEMPGenericService.cs" />
     <Compile Include="Service\IActionService.cs" />
     <Compile Include="Service\IAddressService.cs" />

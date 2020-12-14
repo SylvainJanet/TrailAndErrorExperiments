@@ -22,13 +22,12 @@ namespace WebApp.Service
             using (MyDbContext db = new MyDbContext())
             {
                 IPersonService _PersonService = new PersonService(new PersonRepository(db));
-                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, t => t.ComfortableThoughts.Where(p => p.Id == id).Count() >= 1))
+                foreach (Person person in _PersonService.GetAllIncludes(1, int.MaxValue, null, t => t.ComfortableThoughts.Where(p => p.Id == id).Count() >= 1 && t.SecretThoughts.Where(p => p.Id == id).Count() >= 1))
                 {
-                    _PersonService.UpdateOne(person, "ComfortableThoughts", person.ComfortableThoughts.Where(p => p.Id != id).ToList());
-                }
-                foreach (Person person in _PersonService.GetAllExcludes(1, int.MaxValue, null, t => t.SecretThoughts.Where(p => p.Id == id).Count() >= 1))
-                {
-                    _PersonService.UpdateOne(person, "SecretThoughts", person.SecretThoughts.Where(p => p.Id != id).ToList());
+                    //_PersonService.UpdateOne(person, "ComfortableThoughts", person.ComfortableThoughts.Where(p => p.Id != id).ToList());
+                    person.ComfortableThoughts = person.ComfortableThoughts.Where(p => p.Id != id).ToList();
+                    person.SecretThoughts = person.SecretThoughts.Where(p => p.Id != id).ToList();
+                    _PersonService.Update(person);
                 }
             }
             _repository.Delete(objs);

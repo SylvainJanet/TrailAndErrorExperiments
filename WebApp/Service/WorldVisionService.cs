@@ -8,7 +8,7 @@ using WebApp.Repositories;
 
 namespace WebApp.Service
 {
-    public class WorldVisionService : GenericService<WorldVision> , IWorldVisionService
+    public class WorldVisionService : GenericService<WorldVision>, IWorldVisionService
     {
         public WorldVisionService(IWorldVisionRepository worldVisionRepository) : base(worldVisionRepository)
         {

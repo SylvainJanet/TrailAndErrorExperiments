@@ -12,6 +12,11 @@ namespace WebApp.Exceptions
             return "Object of class " + t.Name + " has null Id";
         }
 
+        public static string HasNoPropertyRelation(Type t1, Type t2)
+        {
+            return "Class " + t1.Name + " has no property related with class " + t2.Name;
+        }
+
         public static string CannotWriteReadOnlyProperty(Type t, string propertyName)
         {
             return "Cannot write property " + propertyName + "of class " + t.Name + " : it is ReadOnly";
