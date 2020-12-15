@@ -80,6 +80,7 @@ namespace WebApp.Service
 
         public T FindById(bool isIncludes, bool isTracked, params object[] objs)
         {
+            GenericTools.CheckIfObjectIsKey<T>(objs);
             return _repository.FindById(isIncludes, isTracked, objs);
         }
 
@@ -236,6 +237,7 @@ namespace WebApp.Service
 
         public void Delete(params object[] objs)
         {
+            GenericTools.CheckIfObjectIsKey<T>(objs);
             GenericTools.PrepareDelete<T>(objs);
             _repository.Delete(objs);
         }
@@ -260,7 +262,7 @@ namespace WebApp.Service
 
         public void UpdateOne(T t, string propertyName, object newValue)
         {
-            GenericTools.PrepareUpdateOne(t, propertyName, newValue);
+            GenericTools.PrepareUpdateOne(t, propertyName);
             _repository.UpdateOne(t, propertyName, newValue);
         } 
     }

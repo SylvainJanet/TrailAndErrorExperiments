@@ -1178,6 +1178,34 @@ namespace WebApp.Repositories
         }
 
         /// <summary>
+        /// See <see cref="FindByIdIncludes(object[])"/>. Does the same thing in a specific context
+        /// <paramref name="myDbContext"/>, ie
+        /// <br/>
+        /// finds an object from DB having
+        /// <list type="bullet">
+        /// <item>
+        /// either a specific Id, if <typeparamref name="T"/> derives from <see cref="BaseEntity"/>
+        /// </item>
+        /// <item>
+        /// or have specific key values otherwise.
+        /// </item>
+        /// </list>
+        /// Other types in relationship with <typeparamref name="T"/> included, elements not tracked.
+        /// </summary>
+        /// <remarks>
+        /// Keys have to be specified in the same order as they are declared in the class <typeparamref name="T"/>
+        /// </remarks>
+        /// <param name="myDbContext">The context from which the element has to be found</param>
+        /// <param name="objs">Either the Id of the object to delete, or its keys values.</param>
+        /// <returns>The element, if found, <see langword="null"/> otherwise.</returns>
+        /// <exception cref="InvalidKeyForClassException"/>
+        private T FindByIdIncludesInNewContext(MyDbContext myDbContext, params object[] objs)
+        {
+            GenericTools.CheckIfObjectIsKey<T>(objs);
+            return GenericTools.QueryWhereKeysAre(GenericTools.QueryTInclude<T>(myDbContext), objs).SingleOrDefault();
+        }
+
+        /// <summary>
         /// Updates an object <paramref name="t"/> of class <typeparamref name="T"/> in DB.
         /// <br/>
         /// <remark>Assumes every property representing a relationships involving <typeparamref name="T"/> has a corresponding <see cref="CustomParam"/> in <paramref name="propss"/></remark>
@@ -1222,7 +1250,7 @@ namespace WebApp.Repositories
         {
             using (MyDbContext newContext = new MyDbContext())
             {
-                T tToChange = FindByIdIncludesTrackedInNewContext(newContext, GenericTools.GetKeysValues(t));
+                T tToChange = FindByIdIncludesInNewContext(newContext, GenericTools.GetKeysValues(t));
 
                 PropertyInfo propToChange = typeof(T).GetProperty(propertyName);
                 if (propToChange == null)
@@ -1234,7 +1262,10 @@ namespace WebApp.Repositories
 
                 typeof(T).GetProperty(propertyName).SetValue(tToChange, newValue);
 
-                newContext.Entry(tToChange).State = EntityState.Modified;
+                foreach (var entry in newContext.ChangeTracker.Entries())
+                {
+                    entry.State = EntityState.Detached;
+                }
 
                 newContext.SaveChanges();
             }
